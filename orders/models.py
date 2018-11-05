@@ -15,7 +15,6 @@ class Dish(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-
 class PriceCategories(models.Model):
     name = models.CharField(max_length=10, blank=False)
 
