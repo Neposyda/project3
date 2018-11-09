@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{#{% load staticfiles %}#}
+{#{% block additional_css %}#}
+<link type="text/css" href="/static/login_logout.css" rel="stylesheet">
+{% block title %}Вхід{% endblock %}
+{% block content %}
+    <div id="ll">
+        <h2>Вхід</h2>
+        {% if message %}
+            <div>
+                {{ message }}
+            </div>
+        {% endif %}
+        <div>
+        <form action="{% url 'login' %}" method="post">
+            {% csrf_token %}
+            <div><input name="username" autocomplete="off" type="text"/></div>
+            <div><input name="password" autocomplete="off" type="password"/></div>
+            <div><input type="submit" value="Login"/></div>
+        </form>
+        </div>
+    </div>
+{% endblock %}
