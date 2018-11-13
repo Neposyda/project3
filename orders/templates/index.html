@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <title>project3 - index</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body>
 <div class="container">
-    <div class="navigation_bar">
-        <button>Menu</button>
-        <button>Login</button>
+    <div class="navbar navbar-default">
+        <div class="oollapse navbar-collapse">
+            <div class="navbar navbar-nav navbar-left"><a>Menu</a></div>
+            <div class="navbar navbar-nav navbar-right"><a href="{% url 'user' %}">Login</a></div>
+        </div>
     </div>
     <div class="body_index">
         <div class="text">
