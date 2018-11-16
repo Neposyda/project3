@@ -1,4 +1,16 @@
 {% extends "base.html" %}
+{% block title %} Registration: {% endblock %}
 {% block body %}
-
+    <div class="container">
+        <div><h1>Registration new user:</h1></div>
+    <div>
+        <form action="{% url 'registration' %}">
+            <input type="text" id="name" autocomplete="off">
+            <input type="text" id="last_name" autocomplete="off">
+            <input type="password" id="pass" autocomplete="off">
+            <input type="password" id="pass_conf" autocomplete="off">
+            <input type="submit" id="reg">
+        </form>
+    </div>
+    </div>
 {% endblock %}

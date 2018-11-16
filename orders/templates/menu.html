@@ -9,6 +9,22 @@
         <div class="header"></div>
         <div class="body_menu">
             <div class="menu_group_list">
+                <div id="categorie">
+                {% for categorie in categories_list %}
+                    {% if not categorie.subtype %}
+                        <h3>{{ categorie.name }}</h3>
+                        <div class="dishes">
+                        <ul id="{{ categorie.id }}">
+                        {% for dish in dishes_list %}
+                            {% if categorie.id == dish.categorie_id %}
+                            <li id="{{ dish.id }}">{{ dish.name }}</li>
+                            {% endif %}
+                        {% endfor %}
+                        </ul>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                </div>
                 <div class="menu_item_ordered"></div>
                 <div class="menu_item_list"></div>
             </div>

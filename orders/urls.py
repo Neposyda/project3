@@ -4,5 +4,8 @@ from . import views as views
 from users import views as users_views
 
 urlpatterns = [
-    path("", views.index, name="index")
+    path("", views.index, name="index"),
+    path("user/", users_views.index, name='user'),
+    path("menu/", views.menu, name="menu"),
+    path("dish_list", views.menu, name="dish_list")
 ]
