@@ -9,7 +9,7 @@ def index(request):
 
 def menu(request):
     content = {'categories_list': Categorie.objects.all(), 'dishes_list': Dish.objects.all()}
-    print(content)
+    # print(content)
     return render(request, 'menu.html', content)
 
 def dish_list(request, categorie_id):
