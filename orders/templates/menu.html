@@ -4,13 +4,25 @@
     <meta charset="UTF-8">
     <title>project3 - menu</title>
     {% load static %}
-    <script src="{% static 'index.js' %}"></script>
+    <script src="{% static 'index.js' %}">
+        localStorage.getItem('contentCategorie');
+    </script>
+    <style>
+        .dish:hover{
+            background-color: aquamarine;
+        }
+
+        .order_items{
+            background-color: antiquewhite;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="header"></div>
         <div class="body_menu">
             <div class="order_items">
+                <ul id="order_items"></ul>
             </div>
             <div class="menu_group_list">
                 <div name="dishes">
@@ -19,18 +31,16 @@
                     {% if not categorie.subtype %}
                         <h3 class="categorie_name" id="categorie{{ categorie.id }}">{{ categorie.name }}</h3>
                         <div class="categorie{{ categorie.id}}">
-                        {% for dish in dishes_list %}
-                            {% if categorie.id == dish.categorie_id %}
-                            <li class="dish" id="{{ dish.id }}">{{ dish.name }}</li>
-                            {% endif %}
-                        {% endfor %}
+                            {% for dish in dishes_list %}
+                                {% if categorie.id == dish.categorie_id %}
+                                    <li class="dish" id="{{ dish.id }}">{{ dish.name }} (small=${{ dish.small }} large=${{ dish.large }})</li>
+                                {% endif %}
+                            {% endfor %}
                         </div>
                     {% endif %}
                 {% endfor %}
                 </ul>
                 </div>
-                <div class="menu_item_ordered"></div>
-                <div class="menu_item_list"></div>
             </div>
         </div>
         <div class="footer"></div>
