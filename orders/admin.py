@@ -19,6 +19,7 @@ class CategorieAdmin(admin.ModelAdmin):
 class DishAdmin(admin.ModelAdmin):
     list_filter = ['complement', 'categorie_id']
 
+
 class CategorieInline(admin.StackedInline):
     model = Categorie
     fieldsets = [('category', {'fields': ['id', 'name']})]

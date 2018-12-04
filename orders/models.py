@@ -36,9 +36,6 @@ class Price(models.Model):
         return f"{self.dish.name} / {self.categorie.name}: small=${self.small} large=${self.large}"
 
 
-# class PriceAdmin (admin.ModelAmin):
-#     pass
-
 class Prices(models.Model):
     dishes = models.ManyToManyField(Dish)
     pricecategories = models.ManyToManyField(PriceCategories)

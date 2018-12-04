@@ -23,8 +23,8 @@ def menu(request):
             # 'categorie_id': Dish.objects.get(id=item.dish_id).categorie,
             'name': item.dish.name,
             # 'name': Dish.objects.get(id=item.dish_id).name,
-            'small': item.small,
-            'large': item.large})
+            'small': float(item.small),
+            'large': float(item.large)})
     content = {'categories_list': Categorie.objects.all(), 'dishes_list': dishes_list}
     # content = {'categories_list': Categorie.objects.all(), 'dishes_list': Dish.objects.all()}
     return render(request, 'menu.html', content)
@@ -33,15 +33,21 @@ def menu(request):
 def TableToJSON (obj: models.Model):
     obj_dict = []
     # obj = models.Model('NameTable').objects.all()
-    for item in obj.objects.values():
-        obj_dict.append(item)
+    if obj != Price:
+        for item in obj.objects.values():
+            obj_dict.append(item)
+    else:
+        for item in obj.objects.values():
+            item['small'] = float(item['small'])
+            item['large'] = float(item['large'])
+            obj_dict.append(item)
     return obj_dict
 
 
 def data(request):
-    data = {
-        'categorie_list': TableToJSON(Categorie),
+    datadict = {
+        'categories_dish_list': TableToJSON(Categorie),
         'dishes_list': TableToJSON(Dish),
-        'categorie_price_list': TableToJSON(PriceCategories),
+        'categories_price_list': TableToJSON(PriceCategories),
         'prices_list': TableToJSON(Price)}
-    return JsonResponse(data)
+    return JsonResponse(datadict)
