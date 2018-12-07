@@ -8,29 +8,41 @@
         localStorage.getItem('contentCategorie');
     </script>
     <style>
+        .body_menu{
+            max-width: 50%;
+        }
         .dish:hover{
             background-color: aquamarine;
+        }
+
+        .select {
+            background-color: darkkhaki;
         }
 
         .order_items{
             background-color: antiquewhite;
         }
+        .itemLine{
+            display: inline;
+        }
+
+        input.price, input.summ {
+            max-width: 50px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="order"></div>
+        <h2 id="title_order">My order:</h2>
+        <div class="order">
+        </div>
         <div class="body_menu">
-            <div class="order_items">
-                <ul id="order_items"></ul>
-            </div>
-            <div class="menu_group_list">
-                <div name="dishes">
+            <div name="dishes">
                 <ul id="dishes_list">
                 {% for categorie in categories_list %}
                     {% if not categorie.subtype %}
-                        <h3 class="categorie_name" id="categorie{{ categorie.id }}">{{ categorie.name }}</h3>
-                        <div class="categorie{{ categorie.id}}">
+                        <h3 class="ctgr_name" id="ctgr{{ categorie.id }}">{{ categorie.name }}</h3>
+                        <div class="ctgr{{ categorie.id}}">
                             {% for dish in dishes_list %}
                                 {% if categorie.id == dish.categorie_id %}
                                     <li class="dish" id="{{ dish.id }}">{{ dish.name }} (small=${{ dish.small }} large=${{ dish.large }})</li>
@@ -40,8 +52,8 @@
                     {% endif %}
                 {% endfor %}
                 </ul>
-                </div>
             </div>
+{#            </div>#}
         </div>
         <div class="footer"></div>
     </div>
