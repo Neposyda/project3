@@ -45,7 +45,13 @@
                         <div class="ctgr{{ categorie.id}}">
                             {% for dish in dishes_list %}
                                 {% if categorie.id == dish.categorie_id %}
-                                    <li class="dish" id="{{ dish.id }}">{{ dish.name }} (small=${{ dish.small }} large=${{ dish.large }})</li>
+                                    <li class="dish" id="{{ dish.id }}">{{ dish.name }}
+                                        ($ {{ dish.small }}
+                                        {% if dish.large > 0 %}
+                                             / $ {{ dish.large }}
+                                        {% endif %}
+                                        )
+                                    </li>
                                 {% endif %}
                             {% endfor %}
                         </div>
