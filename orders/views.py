@@ -2,7 +2,7 @@ from django.http import JsonResponse
 # from django.core import serializers
 from django.shortcuts import render
 from django.db import models
-from orders.models import Categorie, PriceCategories,Price,  Prices, Dish
+from orders.models import Categorie, PriceCategories, Price,  Prices, Dish
 
 
 # Create your views here.
@@ -24,7 +24,10 @@ def menu(request):
             'name': item.dish.name,
             # 'name': Dish.objects.get(id=item.dish_id).name,
             'small': float(item.small),
-            'large': float(item.large)})
+            'large': float(item.large),
+            'is_compl': Categorie.objects.filter(
+                subtype=item.dish.categorie_id).count() != 0  # :)))))
+        })
     content = {'categories_list': Categorie.objects.all(), 'dishes_list': dishes_list}
     # content = {'categories_list': Categorie.objects.all(), 'dishes_list': Dish.objects.all()}
     return render(request, 'menu.html', content)
@@ -51,3 +54,14 @@ def data(request):
         'categories_price_list': TableToJSON(PriceCategories),
         'prices_list': TableToJSON(Price)}
     return JsonResponse(datadict)
+
+
+def price(request, dishId):
+    pr = []
+    for item in Price.objects.filter(dish_id=dishId).values('categorie_id', 'small', 'large'):
+        item['small'] = float(item['small'])
+        item['large'] = float(item['large'])
+        pr.append(item)
+    # pr_dict={'pr_'+str(dishId): pr}
+    return JsonResponse({str(dishId): pr})
+

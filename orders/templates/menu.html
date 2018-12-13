@@ -46,6 +46,10 @@
                             {% for dish in dishes_list %}
                                 {% if categorie.id == dish.categorie_id %}
                                     <li class="dish" id="{{ dish.id }}">{{ dish.name }}
+                                        {% if dish.is_compl%}
+                                          (with compl.)
+                                        {% endif %}
+
                                         ($ {{ dish.small }}
                                         {% if dish.large > 0 %}
                                              / $ {{ dish.large }}

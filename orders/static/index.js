@@ -1,9 +1,9 @@
-let ctgDishAll, dishAll, ctgPriceAll, priceAll;
+let ctgDishAll, dishAll, ctgPriceAll, priceAll={};
 let ctgInOrder={};
 
 
 function createNewItem (dishId){
-    let ctgId=dishAll.getIdCategorie(dishId);
+    let ctgId=dishAll.get(dishId).categorie_id;
     let ctgName=ctgDishAll.getName(ctgId);
     let divCtgr;
     if (!document.querySelector('.order > .ctgr'+ctgId)){
@@ -23,13 +23,13 @@ function createNewItem (dishId){
     //create elements of new item in order
     const divNewItem=document.createElement('div');
     divNewItem.setAttribute('class','item');
-    // divNewItem.setAttribute('id','item'+dishId); // !!!!!!
+    // divNewItem.setAttribute('name',dishId+<cuonter>); // !!!!!!
 
    //create elements of new item in order
     const divName= document.createElement('input');{
     divName.setAttribute('type','text');
     divName.setAttribute('class', 'itemLine name');
-    divName.setAttribute('value',dishAll.getName(dishId));
+    divName.setAttribute('value',dishAll.get(dishId).name);
     divName.setAttribute('disabled','off');}
 
     const divType=document.createElement('input');{
@@ -69,6 +69,13 @@ function createNewItem (dishId){
 
 
     divNewItem.appendChild(divName);
+    if (dishAll.get(dishId).complement){
+        const divCompl=document.createElement('input');
+        divCompl.setAttribute('type', 'button');
+        divCompl.setAttribute('class', 'itemLine btncompl');
+        divCompl.setAttribute('value','>>');
+        divNewItem.appendChild(divCompl);
+    }
     divNewItem.appendChild(divType);
     divNewItem.appendChild(divCount);
     divNewItem.appendChild(divPrice);
@@ -94,25 +101,30 @@ document.addEventListener('DOMContentLoaded', ()=>{
             };
 
             dishAll=dataJSON['dishes_list'];
-            dishAll.getName=(idDish)=>{
+            //add new funct. 'get' for 'dishAll'
+            dishAll.get=(idDish, field='')=>{
                 let i=0;
                 while (dishAll[i++].id!=parseInt(idDish)){}
-                return dishAll[i-1].name;
+                if (field!='')
+                    return (dishAll[i-1][field])?dishAll[i-1][field]:'No fieldname:'+field;
+                return dishAll[i-1];
             };
-            dishAll.getIdCategorie=(idDish)=>{
-                let i=0;
-                while(dishAll[i++].id!=parseInt(idDish)){};
-                return dishAll[i-1].categorie_id;
-            };
-
-            // ctgPriceAll=dataJSON['categories_price_list'];
-            // priceAll=dataJSON['prices_list'];
-            // priceAll.getPrice=(dishId, priceCtg=0,  type='small')=>{
-            //     let i=0;
-            //     while (priceAll[i].id!=parseInt(dishId) && priceAll[i].categorie_id==parseInt(priceCtg)){++i;}
-            //     console.log(priceAll[i-1][type]);
-            // }
         };
+
+        //new function for priceAll --- get and adding price for selection dish
+        priceAll.addPriceJSON=(dishId)=>{
+            if (priceAll[dishAll.toString()]){
+                console.log(priceAll[dishId.toString()]);
+                return false;
+            }
+            request.open('GET', '/'+dishId);
+            request.send();
+            request.onload=()=>{
+                const dataJSON=JSON.parse(request.responseText);//{'dish_id':[{...}]}
+                priceAll[dishId]=dataJSON[dishId]
+            }
+            return true;
+            };
 
         //event listener for order
         document.querySelector('.order').onclick=(e)=>{
@@ -122,19 +134,26 @@ document.addEventListener('DOMContentLoaded', ()=>{
                     case 'btntype':
                         obj.value=(obj.value=='Small')?'Large':'Small';
                         break;
+                    case 'btncompl':
+                        //stvoryty div dla pizza-topping / subs- on any subs, subs-steak-addons
+                        //pryvazaty do div
+                        //yaksco zapovn masyv dodatkiv dla cogo bluda
+                        obj.value=(obj.value=='>>')?'<<':'>>';
+                        console.log('add topping/addons');
+                        break;
                     case 'btncopy':
                         const groupItem=obj.parentElement.parentElement;
                         const cloneItem=obj.parentElement.cloneNode(true);
-                        // cloneItem.childNodes
                         groupItem.appendChild(cloneItem);
                         break;
                     case 'btndel':
                         obj.parentElement.remove();
-                        break;
+                        break
                 }
             }
         };
 
+        //zgort rozg grupu menyu
         document.querySelector('#dishes_list').onclick = (e)=>{
         //click group name
         if (e.target.className=='ctgr_name') {
@@ -143,11 +162,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
         }
         //select dish
         if (e.target.className=="dish"){
+
             createNewItem(e.target.id);
-            e.target.classList.add('select')
+            priceAll.addPriceJSON(e.target.id);
+            e.target.classList.add('select');
         }
+
         };
 
+        //zgort rozg zamovlennya
         document.querySelector('#title_order').onclick=()=>{
             document.querySelector('.order').hidden=!document.querySelector('.order').hidden;
         };
