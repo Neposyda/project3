@@ -1,14 +1,15 @@
 let ctgDishAll, dishAll, ctgPriceAll, priceAll={};
-let ctgInOrder={};
+// let ctgInOrder={};
 
 
 function createNewItem (dishId){
     let ctgId=dishAll.get(dishId).categorie_id;
-    let ctgName=ctgDishAll.getName(ctgId);
+    let ctgName=ctgDishAll.get(ctgId).name;
     let divCtgr;
+    //verify or create new group for selicted dishes
     if (!document.querySelector('.order > .ctgr'+ctgId)){
-        // ctgInOrder.push(toString(ctgId))
         const divOrder = document.querySelector('.order');
+
         const h4Ctg=document.createElement('h4');
         h4Ctg.innerText=ctgName + ':    total for group= ' +'$<summ.group>';
 
@@ -69,11 +70,12 @@ function createNewItem (dishId){
 
 
     divNewItem.appendChild(divName);
-    if (dishAll.get(dishId).complement){
+    if (ctgDishAll.getListForSubtype(dishAll.get(dishId).categorie_id, true)){
         const divCompl=document.createElement('input');
         divCompl.setAttribute('type', 'button');
         divCompl.setAttribute('class', 'itemLine btncompl');
         divCompl.setAttribute('value','>>');
+        divCompl.setAttribute('name',dishId.toString());
         divNewItem.appendChild(divCompl);
     }
     divNewItem.appendChild(divType);
@@ -86,6 +88,73 @@ function createNewItem (dishId){
     divCtgr.appendChild(divNewItem);
 }
 
+function createItemCompl (complItem){
+
+    const divItemCompl=document.createElement('div');
+    divItemCompl.setAttribute('class', 'complItm');
+    divItemCompl.setAttribute('data', complItem.id.toString());
+    // divItemCompl.maxWidth=800;
+    // divItemCompl.scrollIntoView();
+
+    const inpSel=document.createElement('input');
+    inpSel.setAttribute('type', 'checkbox');
+    inpSel.setAttribute('class', 'itemInline');
+    inpSel.setAttribute('value','false');
+
+    const inpName=document.createElement('input');
+    inpName.setAttribute('type','text');
+    inpName.setAttribute('class','itemInline');
+    inpName.setAttribute('value', complItem.name);
+    inpName.setAttribute('disabled','off');
+
+    const inpCount=document.createElement('input');
+    inpCount.setAttribute('type','number');
+    inpCount.setAttribute('class', 'itemLine count');
+    inpCount.setAttribute('value','0');
+    inpCount.setAttribute('step','1');
+    inpCount.setAttribute('min','0');
+    inpCount.setAttribute('max-width', '100');
+
+    const inpPrice=document.createElement('input');
+    inpPrice.setAttribute('type','number');
+    inpPrice.setAttribute('class', 'itemLine price');
+    // inpCount.setAttribute('value',priceAll[complItem.id].small);
+    inpPrice.setAttribute('step','0.01');
+    inpPrice.setAttribute('min','0.00');
+    inpPrice.setAttribute('disabled','off');
+    inpPrice.setAttribute('max-width','100');
+
+    divItemCompl.appendChild(inpSel);
+    divItemCompl.appendChild(inpName);
+    divItemCompl.appendChild(inpCount);
+    divItemCompl.appendChild(inpPrice);
+
+    return divItemCompl;
+}
+
+function createCompl (dishId){
+    let ctgDishId=dishAll.get(dishId).categorie_id;
+    let ctgComplList=ctgDishAll.getListForSubtype(ctgDishId);
+    let complList=[];
+
+    for (let i=0; i<ctgComplList.length; i++){
+        let selDish=dishAll.get(dishId);
+        if (ctgDishId===2 && !selDish.name.includes('Steak')){
+            i++;
+        }
+        complList = complList.concat(dishAll.getListForCategorie(ctgComplList[i].id));
+    }
+
+    if (complList===[]) return false;
+    const divCompl=document.createElement('div');
+    divCompl.setAttribute('class','complGrp');
+    for (let i=0; i< complList.length; i++) {
+        const divItemCompl=createItemCompl(complList[i]);
+        divCompl.appendChild(divItemCompl);//!!!
+    }
+    return divCompl;
+}
+
 document.addEventListener('DOMContentLoaded', ()=>{
         // Open new request to get new posts.
         const request = new XMLHttpRequest();
@@ -94,52 +163,84 @@ document.addEventListener('DOMContentLoaded', ()=>{
         request.onload = () => {
             const dataJSON = JSON.parse(request.responseText);
             ctgDishAll=dataJSON['categories_dish_list'];
-            ctgDishAll.getName=function(idCtg){
+            //add function 'get' for ctgDishAll
+            ctgDishAll.get=(idCtg)=>{
                 let i=0;
-                while (ctgDishAll[i++].id != parseInt(idCtg)){}
-                return ctgDishAll[i-1].name ;
+                while (ctgDishAll[i++].id !== parseInt(idCtg)){}
+                return ctgDishAll[i-1];
+            };
+            //add funct 'getListForSubtype
+            ctgDishAll.getListForSubtype=(idCtg, noList=false)=>{
+                if (noList) {
+                    let rez=false;
+                    ctgDishAll.forEach(function (item) {
+                        if (item.subtype===idCtg){
+                            rez= true;
+                        }
+                    });
+                    return rez;
+                }
+                let myList=[];
+                ctgDishAll.forEach(function(item){
+                    if (item.subtype===idCtg)
+                        myList[myList.length]=item;
+                });
+                return myList;
             };
 
             dishAll=dataJSON['dishes_list'];
             //add new funct. 'get' for 'dishAll'
-            dishAll.get=(idDish, field='')=>{
+            dishAll.get=(idDish)=>{
                 let i=0;
-                while (dishAll[i++].id!=parseInt(idDish)){}
-                if (field!='')
-                    return (dishAll[i-1][field])?dishAll[i-1][field]:'No fieldname:'+field;
+                while (dishAll[i++].id!==parseInt(idDish)){}
                 return dishAll[i-1];
             };
+            //add funct 'getListForCategorie'
+            dishAll.getListForCategorie=(ctgId)=>{
+                myList=[];
+                dishAll.forEach(function(item){
+                    if(item.categorie_id===ctgId)
+                        myList[myList.length]=item;
+                });
+                return myList;
+            };
+            request.abort();//????
         };
 
         //new function for priceAll --- get and adding price for selection dish
         priceAll.addPriceJSON=(dishId)=>{
-            if (priceAll[dishAll.toString()]){
+            if (priceAll[dishId.toString()]){
                 console.log(priceAll[dishId.toString()]);
-                return false;
+                return true;
             }
+            const request = new XMLHttpRequest();
             request.open('GET', '/'+dishId);
             request.send();
             request.onload=()=>{
                 const dataJSON=JSON.parse(request.responseText);//{'dish_id':[{...}]}
-                priceAll[dishId]=dataJSON[dishId]
-            }
+                priceAll[dishId.toString()]=dataJSON[dishId.toString()];
+                request.abort();//???
+            };
             return true;
             };
 
-        //event listener for order
+        //event listener for orders button
         document.querySelector('.order').onclick=(e)=>{
-            obj=e.target;
-            if (obj.type=='button') {
+            let obj=e.target;
+            if (obj.type==='button') {
                 switch (obj.classList[1]) {
                     case 'btntype':
-                        obj.value=(obj.value=='Small')?'Large':'Small';
+                        obj.value=(obj.value==='Small')?'Large':'Small';
                         break;
                     case 'btncompl':
-                        //stvoryty div dla pizza-topping / subs- on any subs, subs-steak-addons
-                        //pryvazaty do div
-                        //yaksco zapovn masyv dodatkiv dla cogo bluda
-                        obj.value=(obj.value=='>>')?'<<':'>>';
-                        console.log('add topping/addons');
+                        let objPar=obj.parentNode;
+                        if (obj.value==='>>'){
+                            obj.value='<<';
+                            objPar.appendChild(createCompl(obj.name));
+                        }else{
+                            obj.value='>>';
+                            objPar.removeChild(objPar.lastChild);
+                        }
                         break;
                     case 'btncopy':
                         const groupItem=obj.parentElement.parentElement;
@@ -156,18 +257,29 @@ document.addEventListener('DOMContentLoaded', ()=>{
         //zgort rozg grupu menyu
         document.querySelector('#dishes_list').onclick = (e)=>{
         //click group name
-        if (e.target.className=='ctgr_name') {
+        if (e.target.className==='ctgr_name') {
             const v = document.querySelector("ul > ."+e.target.id);
             v.hidden= !v.hidden;
         }
         //select dish
-        if (e.target.className=="dish"){
-
+        if (e.target.className==="dish"){
             createNewItem(e.target.id);
             priceAll.addPriceJSON(e.target.id);
             e.target.classList.add('select');
+            // complements/toppings/addons add price
+            let itemCtgId=dishAll.get(e.target.id).categorie_id;
+            if (!ctgDishAll.getListForSubtype(itemCtgId, true)){
+                return 0;
+            }
+            let ctgCompl=ctgDishAll.getListForSubtype(itemCtgId);
+            dishAll.forEach(function (itemDish) {//!!!!!
+                ctgCompl.forEach(function (itemCtg) {
+                    if(itemDish.categorie_id===itemCtg.id){
+                        priceAll.addPriceJSON(itemDish.id);
+                    }
+                });
+            });
         }
-
         };
 
         //zgort rozg zamovlennya

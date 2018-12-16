@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Categorie, Dish, Price, PriceCategories, Prices, Orders, OrdersItems
+from .models import Categorie, Dish, Price, PriceCategories, Orders, OrdersItems
 
 
 class DishInline(admin.StackedInline):
@@ -34,6 +34,5 @@ admin.site.register(Categorie, CategorieAdmin)
 admin.site.register(Dish, DishAdmin)
 admin.site.register(Price, PriceAdmin)
 admin.site.register(PriceCategories)
-admin.site.register(Prices)
 admin.site.register(Orders)
 admin.site.register(OrdersItems)

@@ -35,7 +35,6 @@ def menu(request):
 
 def TableToJSON (obj: models.Model):
     obj_dict = []
-    # obj = models.Model('NameTable').objects.all()
     if obj != Price:
         for item in obj.objects.values():
             obj_dict.append(item)
@@ -58,6 +57,7 @@ def data(request):
 
 def price(request, dishId):
     pr = []
+
     for item in Price.objects.filter(dish_id=dishId).values('categorie_id', 'small', 'large'):
         item['small'] = float(item['small'])
         item['large'] = float(item['large'])
