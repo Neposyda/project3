@@ -1,5 +1,5 @@
 let ctgDishAll, dishAll, ctgPriceAll, priceAll={};
-// let ctgInOrder={};
+let orderItems={'count':0};
 
 
 function createNewItem (dishId){
@@ -86,6 +86,7 @@ function createNewItem (dishId){
     divNewItem.appendChild(divDel);
 
     divCtgr.appendChild(divNewItem);
+    return divNewItem;//!!! 17/12
 }
 
 function createItemCompl (complItem){
@@ -195,7 +196,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 while (dishAll[i++].id!==parseInt(idDish)){}
                 return dishAll[i-1];
             };
-            //add funct 'getListForCategorie'
+            //add funct for dishAll 'getListForCategorie'
             dishAll.getListForCategorie=(ctgId)=>{
                 myList=[];
                 dishAll.forEach(function(item){
@@ -204,10 +205,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 });
                 return myList;
             };
-            request.abort();//????
+            request.abort();
         };
 
-        //new function for priceAll --- get and adding price for selection dish
+        //add function for priceAll --- get and adding price for selection dish
         priceAll.addPriceJSON=(dishId)=>{
             if (priceAll[dishId.toString()]){
                 console.log(priceAll[dishId.toString()]);
@@ -219,10 +220,40 @@ document.addEventListener('DOMContentLoaded', ()=>{
             request.onload=()=>{
                 const dataJSON=JSON.parse(request.responseText);//{'dish_id':[{...}]}
                 priceAll[dishId.toString()]=dataJSON[dishId.toString()];
-                request.abort();//???
+                request.abort();
             };
             return true;
-            };
+        };
+
+        //add funct 'addItem' for orderItems={}
+        orderItems.addItem=(dishId)=>{
+            let selToOrd={};
+            let selDish=dishAll.get(dishId);
+
+        //--- !!! createNewItem 1712
+            let ctgDishId=dishAll.get(dishId).categorie_id;
+            let ctgComplList=ctgDishAll.getListForSubtype(ctgDishId);
+            let complList=[];
+
+            for (let i=0; i<ctgComplList.length; i++){
+            //let selDish=dishAll.get(dishId);
+                if (ctgDishId===2 && !selDish.name.includes('Steak')){
+                    i++;
+                }
+                complList = complList.concat(dishAll.getListForCategorie(ctgComplList[i].id));
+            }
+        //---
+
+            selToOrd.idDish=dishId;
+            selToOrd.idCtgDish=selDish.categorie_id;
+            selToOrd.name=selDish.name;
+            selToOrd.type='small';
+            selToOrd.idCtgPrice=1;
+            selToOrd.countCompl=0;
+            selToOrd.complement=complList;
+
+            orderItems[++orderItems.count]=selToOrd;
+        };
 
         //event listener for orders button
         document.querySelector('.order').onclick=(e)=>{
@@ -263,22 +294,25 @@ document.addEventListener('DOMContentLoaded', ()=>{
         }
         //select dish
         if (e.target.className==="dish"){
-            createNewItem(e.target.id);
+            let divSelItem = createNewItem(e.target.id);//!!! 17/12
             priceAll.addPriceJSON(e.target.id);
             e.target.classList.add('select');
             // complements/toppings/addons add price
             let itemCtgId=dishAll.get(e.target.id).categorie_id;
+            //check have it compl.
             if (!ctgDishAll.getListForSubtype(itemCtgId, true)){
                 return 0;
             }
+            //added prices compl. in priceAll
             let ctgCompl=ctgDishAll.getListForSubtype(itemCtgId);
-            dishAll.forEach(function (itemDish) {//!!!!!
+            dishAll.forEach(function (itemDish) {
                 ctgCompl.forEach(function (itemCtg) {
                     if(itemDish.categorie_id===itemCtg.id){
                         priceAll.addPriceJSON(itemDish.id);
                     }
                 });
             });
+            //added item in order!!!???
         }
         };
 
