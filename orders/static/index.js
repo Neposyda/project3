@@ -163,6 +163,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
         request.send();
         request.onload = () => {
             const dataJSON = JSON.parse(request.responseText);
+            request.abort();
+
+            //===========================================================
             ctgDishAll=dataJSON['categories_dish_list'];
             //add function 'get' for ctgDishAll
             ctgDishAll.get=(idCtg)=>{
@@ -189,6 +192,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 return myList;
             };
 
+            //=============================================================
             dishAll=dataJSON['dishes_list'];
             //add new funct. 'get' for 'dishAll'
             dishAll.get=(idDish)=>{
@@ -196,18 +200,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 while (dishAll[i++].id!==parseInt(idDish)){}
                 return dishAll[i-1];
             };
+
             //add funct for dishAll 'getListForCategorie'
             dishAll.getListForCategorie=(ctgId)=>{
                 myList=[];
                 dishAll.forEach(function(item){
-                    if(item.categorie_id===ctgId)
-                        myList[myList.length]=item;
+                    if(item.categorie_id===ctgId){
+                        item.complement=false; //change for order
+                        item.count=0;//added for order !!!!!
+                        myList[myList.length]=item;}
                 });
                 return myList;
             };
-            request.abort();
-        };
-
+       };
+        //======================================================================
         //add function for priceAll --- get and adding price for selection dish
         priceAll.addPriceJSON=(dishId)=>{
             if (priceAll[dishId.toString()]){
@@ -225,35 +231,94 @@ document.addEventListener('DOMContentLoaded', ()=>{
             return true;
         };
 
-        //add funct 'addItem' for orderItems={}
+        //=======================================================================
+        //add funct 'addItem' for orderItems={} !!!!!
         orderItems.addItem=(dishId)=>{
             let selToOrd={};
             let selDish=dishAll.get(dishId);
 
         //--- !!! createNewItem 1712
-            let ctgDishId=dishAll.get(dishId).categorie_id;
-            let ctgComplList=ctgDishAll.getListForSubtype(ctgDishId);
+            let ctgComplList=ctgDishAll.getListForSubtype(selDish.categorie_id);
             let complList=[];
-
             for (let i=0; i<ctgComplList.length; i++){
             //let selDish=dishAll.get(dishId);
-                if (ctgDishId===2 && !selDish.name.includes('Steak')){
+                if (selDish.categorie_id===2 && !selDish.name.includes('Steak')){
                     i++;
                 }
                 complList = complList.concat(dishAll.getListForCategorie(ctgComplList[i].id));
             }
-        //---
-
+            selToOrd.idItem=++orderItems.count;
             selToOrd.idDish=dishId;
             selToOrd.idCtgDish=selDish.categorie_id;
-            selToOrd.name=selDish.name;
+            selToOrd.nameDish=selDish.name;
             selToOrd.type='small';
             selToOrd.idCtgPrice=1;
             selToOrd.countCompl=0;
-            selToOrd.complement=complList;
+            selToOrd.complements=complList;
 
-            orderItems[++orderItems.count]=selToOrd;
+            orderItems[orderItems.count]=selToOrd;
         };
+        //add funct calculate count complements for order item
+        orderItems.calcCountCompls=(self, itemsId='')=>{
+            let cnt=0;
+            let compl;
+            if (itemsId=='') {
+                compl=self.complements;
+            }else{
+                compl=orderItems[itemsId].complements;
+            }
+            compl.forEach(function (item) {
+                cnt+=item.count;
+            });
+            compl.countCompl=cnt;
+        };
+
+        //add funct calc ctg price for pizza for order item
+        orderItems.setCtgPriceForPizza=(self, itemsId='')=>{
+            let item;
+            if (itemsId===''){
+                item=self;
+            } else {
+                item=orderItems[itemsId];
+            }
+
+            if (item[itemsId]!==1){
+                console.log(itemsId+ ' --- no Pizza');
+                return 0;
+            }
+
+            let idCtgPr=1;
+            switch (item.countCompl) {
+                case 0:
+                    idCtgPr=1;
+                    break;
+                case 1:
+                    idCtgPr=2;
+                    break;
+                case 2:
+                    idCtgPr=3;
+                    break;
+                case 3:
+                    idCtgPr=4;
+                    break;
+                case 4:
+                    idCtgPr=5;
+                    break;
+                case 5:
+                    idCtgPr=5;
+                    break;
+            }
+            if (itemsId===''){
+                self.idCtgPrice=idCtgPr;
+            }else{
+                orderItems[itemsId].idCtgPrice=idCtgPr;
+            }
+        };
+
+        //add funct set price for order item
+        orderItems.calcPrice=(self, itemsId='', type='')=>{};
+
+        //======================================================================
 
         //event listener for orders button
         document.querySelector('.order').onclick=(e)=>{
@@ -285,34 +350,38 @@ document.addEventListener('DOMContentLoaded', ()=>{
             }
         };
 
-        //zgort rozg grupu menyu
+
         document.querySelector('#dishes_list').onclick = (e)=>{
-        //click group name
+
+            //click group name zgort rozg grupu menyu
         if (e.target.className==='ctgr_name') {
             const v = document.querySelector("ul > ."+e.target.id);
             v.hidden= !v.hidden;
         }
+
         //select dish
-        if (e.target.className==="dish"){
+        if (e.target.className==="dish") {
             let divSelItem = createNewItem(e.target.id);//!!! 17/12
             priceAll.addPriceJSON(e.target.id);
             e.target.classList.add('select');
+
             // complements/toppings/addons add price
-            let itemCtgId=dishAll.get(e.target.id).categorie_id;
+            let itemCtgId = dishAll.get(e.target.id).categorie_id;
             //check have it compl.
-            if (!ctgDishAll.getListForSubtype(itemCtgId, true)){
-                return 0;
-            }
+            if (ctgDishAll.getListForSubtype(itemCtgId, true)) {
             //added prices compl. in priceAll
-            let ctgCompl=ctgDishAll.getListForSubtype(itemCtgId);
-            dishAll.forEach(function (itemDish) {
-                ctgCompl.forEach(function (itemCtg) {
-                    if(itemDish.categorie_id===itemCtg.id){
-                        priceAll.addPriceJSON(itemDish.id);
-                    }
+                let ctgCompl = ctgDishAll.getListForSubtype(itemCtgId);
+                dishAll.forEach(function (itemDish) {
+                    ctgCompl.forEach(function (itemCtg) {
+                        if (itemDish.categorie_id === itemCtg.id) {
+                            priceAll.addPriceJSON(itemDish.id);
+                        }
+                    });
                 });
-            });
-            //added item in order!!!???
+            }
+
+            //added new item in order
+            orderItems.addItem(e.target.id);
         }
         };
 
