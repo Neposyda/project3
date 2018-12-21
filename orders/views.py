@@ -50,8 +50,8 @@ def data(request):
     datadict = {
         'categories_dish_list': TableToJSON(Categorie),
         'dishes_list': TableToJSON(Dish),
-        'categories_price_list': TableToJSON(PriceCategories),
-        'prices_list': TableToJSON(Price)}
+        'categories_price_list': TableToJSON(PriceCategories)}
+        # 'prices_list': TableToJSON(Price)}
     return JsonResponse(datadict)
 
 

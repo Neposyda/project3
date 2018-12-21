@@ -5,7 +5,7 @@
     <title>project3 - menu</title>
     {% load static %}
     <script src="{% static 'index.js' %}">
-        localStorage.getItem('contentCategorie');
+        {#localStorage.getItem('contentCategorie');#}
     </script>
     <style>
         .body_menu{
@@ -22,12 +22,17 @@
         .order_items{
             background-color: antiquewhite;
         }
+        .item{
+            margin: 5px 0;
+        }
         .itemLine{
             display: inline;
         }
-
-        .price, .summ, .count {
-            max-width: 50px;
+        .btntype{
+            width:60px;
+        }
+        .price, .summ,  .count .countCompl {
+            width: 50px;
         }
     </style>
 </head>
@@ -45,7 +50,7 @@
                         <div class="ctgr{{ categorie.id}}">
                             {% for dish in dishes_list %}
                                 {% if categorie.id == dish.categorie_id %}
-                                    <li class="dish" id="{{ dish.id }}">{{ dish.name }}
+                                    <li class="dish" id="{{ dish.id }}" data-dishid={{ dish.id }} data-small={{ dish.small }}>{{ dish.name }}
                                         {% if dish.is_compl%}
                                           (with compl.)
                                         {% endif %}
