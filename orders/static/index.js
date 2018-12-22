@@ -1,4 +1,4 @@
-let ctgDishAll, dishAll, ctgPriceAll, priceAll={};
+let ctgDishAll, dishAll, priceAll={};
 let orderItems={'countDish':0, 'maxNumber':0 };
 
 
@@ -6,7 +6,6 @@ function createNewItem (dishId){
     //create elements of new item in order
     const divNewItem=document.createElement('div');
     divNewItem.setAttribute('class','item');
-    divNewItem.setAttribute('data-dishid',dishId); // !!! data
 
    //create elements of new item in order
     const divName= document.createElement('input');{
@@ -74,8 +73,7 @@ function createNewItem (dishId){
 
     return divNewItem;
 }
-
-
+//+++
 function  createGroupCtgr(dishId) {
     let ctgId=dishAll.get(dishId).categorie_id;
     let ctgName=ctgDishAll.get(ctgId).name;
@@ -100,22 +98,16 @@ function  createGroupCtgr(dishId) {
     return divCtgr;
 }
 
+
 function createItemCompl (complItem){
 
     const divItemCompl=document.createElement('div');
     divItemCompl.setAttribute('class', 'complItm');
-    divItemCompl.setAttribute('data-dishId', complItem.id.toString());
-    // divItemCompl.maxWidth=800;
-    // divItemCompl.scrollIntoView();
-
-    // const inpSel=document.createElement('input');
-    // inpSel.setAttribute('type', 'checkbox');
-    // inpSel.setAttribute('class', 'itemInline');
-    // inpSel.setAttribute('value','false');
+    // divItemCompl.setAttribute('class','hideoff');
 
     const inpName=document.createElement('input');
     inpName.setAttribute('type','text');
-    inpName.setAttribute('class','itemLine');
+    inpName.setAttribute('class','itemLine name');
     inpName.setAttribute('value', complItem.name);
     inpName.setAttribute('disabled','off');
 
@@ -125,12 +117,17 @@ function createItemCompl (complItem){
     inpCount.setAttribute('value','0');
     inpCount.setAttribute('step','1');
     inpCount.setAttribute('min','0');
+    if (ctgDishAll[complItem.categorie_id-1].subtype==1){
+        inpCount.setAttribute('max','5');
+    }else{
+        inpCount.setAttribute('max','50');
+    }
 
     // divItemCompl.appendChild(inpSel);
     divItemCompl.appendChild(inpName);
     divItemCompl.appendChild(inpCount);
 
-    if (priceAll.get(complItem.id)){ //??????????????
+    if (priceAll.get(complItem.id)){
     const inpPrice=document.createElement('input');
     inpPrice.setAttribute('type','number');
     inpPrice.setAttribute('class', 'itemLine price');
@@ -138,13 +135,10 @@ function createItemCompl (complItem){
     inpPrice.setAttribute('value',pr);
     inpPrice.setAttribute('data-price', pr);
     inpPrice.setAttribute('disabled','off');
-    inpPrice.setAttribute('max-width','100');
+    // inpPrice.setAttribute('max-width','100');
 
     divItemCompl.appendChild(inpPrice);
     }
-
-
-
     return divItemCompl;
 }
 //+++
@@ -163,13 +157,17 @@ function createCompl (dishId){
 
     if (complList===[]) return false;
     const divCompl=document.createElement('div');
-    divCompl.setAttribute('class','complGrp');
+    divCompl.setAttribute('class','complGrp hideoff');
     for (let i=0; i< complList.length; i++) {
         const divItemCompl=createItemCompl(complList[i]);
+        divItemCompl.setAttribute('data-dishid',complList[i].id.toString());//---data
+        divItemCompl.setAttribute('data-listId',i.toString()); //---data
+        divItemCompl.setAttribute('data-countcmpl','0'); //---data
         divCompl.appendChild(divItemCompl);//!!!
     }
     return divCompl;
 }
+
 
 document.addEventListener('DOMContentLoaded', ()=>{
         // Open new request to get new posts.
@@ -278,19 +276,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
             selToOrd.nameDish=selDish.name;
             selToOrd.type='small';
             selToOrd.idCtgPrice=1;
-            selToOrd.countCompl=0;
+            selToOrd.countDish=0;
             selToOrd.price=priceAll.get(dishId);
+            selToOrd.countCompl=0;
             selToOrd.complements=complList;
             selToOrd.summ=0;
 
             orderItems[orderItems.maxNumber]=selToOrd;
         };
         //add funct calculate and setting count complements for order item
-        orderItems.calcCountCompls=(self, itemsId='')=>{
+        orderItems.calcCountComplsItem=(self, itemsId='')=>{
             let cnt=0;
             let compl;
             if (itemsId==='') {
-                compl=self.complements;
+                // compl=self.complements;
+                compl=orderItems[self].complements;
             }else{
                 compl=orderItems[itemsId].complements;
             }
@@ -301,11 +301,33 @@ document.addEventListener('DOMContentLoaded', ()=>{
             return cnt;
         };
 
+        //add funct calculate and setting count complements for order ite
+        orderItems.calcSummComplItem=(self, itemsId='')=>{
+            let typePr; let summ=0; let compl;
+            if(itemsId===''){
+                // compl=self.complements;
+                compl=orderItems[self].complements;
+            }else{
+                compl=orderItems[itemsId].complements;
+            };
+            typePr=orderItems.idCtgPrice;
+            for (item in compl){
+                summ+= priceAll.get(compl[item].id, orderItems[itemsId].idCtgPrice, typePr).toFixed(2)*compl[item].count;
+            }
+            return summ.toFixed(2);
+        };
+
+        //add funct calculate and setting summ all complements for order item
+        orderItems.calcSummItem=(self, itemsId='')=>{
+            let ordrItem=(itemsId==='')?orderItems[self]:orderItems[itemsId];
+            let summ=ordrItem.countDish*orderItems.price+orderItems.calcSummComplItem(itemsId)
+        };
+
         //add funct calc ctg price for pizza for order item
         orderItems.setCtgPriceForPizza=(self, itemsId='')=>{
             let item;
             if (itemsId===''){
-                item=self;
+                item=orderItems[self];
             } else {
                 item=orderItems[itemsId];
             }
@@ -363,19 +385,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
         //     let ctgPrCompl=orderItems[itemsId].idCtgPrice
         // };
 
-        //======================================================================
-
-    document.querySelector('.countCompl').onclick=(e)=>{
-        //pizza
-
-        //subs
-
-    }
+        //=====================================================================
 
         //event listener for orders button
         document.querySelector('.order ').onclick=(e)=>{
             let obj=e.target;
-            if (obj.classList[1]=='count'){
+            if (obj.classList[1]==='count'){
                 if (obj.parentElement.childNodes[4].value==0){
                     obj.parentElement.childNodes[4].value=priceAll.get(obj.parentNode.dataset.dishid);
                 }
@@ -387,11 +402,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
             if (obj.type==='button') {
                 switch (obj.classList[1]) {
                     case 'btntype':
-                        let type=(obj.dataset.type=='small')?'large':'small'
-                        obj.dataset.type=type
+                        let type=(obj.dataset.type==='small')?'large':'small';
+                        obj.dataset.type=type;
                         obj.value=(type==='small')?type.toUpperCase():type;
                         orderItems[obj.parentNode.dataset.orderid]['type']=type;
-                        let price=priceAll.get(obj.parentNode.dataset.dishid, 1, type);
+                        let price=priceAll.get(obj.parentNode.dataset.dishid, obj.parentNode.dataset.priceid, type);
+                        if (obj.parentNode.lastChild.classList[0]==='complGrp'){
+                            switch (orderItems[obj.parentNode.id].idCtgDish){
+                                case 1: // pizza
+                                    
+                                    break;
+                                case 2: //subs
+
+                                    break;
+                            }
+                        }
                         let count=parseInt(obj.parentElement.childNodes[3].value);
                         obj.parentElement.childNodes[4].value=price;
                         obj.parentElement.childNodes[5].value=(count*price).toFixed(2);
@@ -400,33 +425,50 @@ document.addEventListener('DOMContentLoaded', ()=>{
                         break;
                     case 'btncompl':
                         let objPar=obj.parentNode;
-                        if (obj.dataset.open=='0'){
+                        if (obj.dataset.open==='0'){
                             obj.dataset.open='1';
                             obj.value='<<';
+                            if (objPar.dataset.countcmpl>0){
+                                objPar.lastChild.classList[1]='hideon';//??????????????????????
+                            }else{
                             objPar.appendChild(createCompl(obj.name));
+                            }
                         }else{
                             obj.dataset.open='0';
                             obj.value='>>';
-                            objPar.removeChild(objPar.lastChild);
+                            if(objPar.dataset.countcmpl>0){
+                                objPar.lastChild.classList[1]='hideoff';// ????????????????????
+                            }else{
+                                objPar.removeChild(objPar.lastChild);
+                            }
                         }
                         break;
                     case 'btncopy':
                         const groupItem=obj.parentElement.parentElement;
                         const cloneItem=obj.parentElement.cloneNode(true);
                         orderItems.addItem(obj.parentNode.dataset.dishid);
+                        cloneItem.setAttribute('id',orderItems.maxNumber);
                         cloneItem.setAttribute('data-orderid',orderItems.maxNumber); // ---- data
+                        cloneItem.setAttribute('data-priceid','1'); // --- data
+                        cloneItem.childNodes[1].value='>>';
+                        cloneItem.childNodes[1].dataset.open='0';
                         cloneItem.childNodes[2].value='SMALL'; //type
                         cloneItem.childNodes[2].dataset.type='small'; // --- data in type
                         cloneItem.childNodes[3].value=0; // count
                         cloneItem.childNodes[4].value=priceAll.get(cloneItem.dataset.dishid).toFixed(2); // price
                         cloneItem.childNodes[5].value='0.00'; // summ
                         // groupItem.appendChild(cloneItem);
+                        if (cloneItem.lastElementChild.classList[0]=='complGrp'){
+                            cloneItem.lastChild.remove();
+                        }
                         groupItem.insertBefore(cloneItem, obj.parentElement);
                         groupItem.dataset.count++;
                         break;
                     case 'btndel':
                         let countSelDish=orderItems.getCountDish(obj.parentNode.dataset.dishid);
                         let objCtg=obj.parentElement.parentElement;
+                        let itemOrd=obj.parentNode;
+                        objCtg.dataset.councmpl=(parseInt(objCtg.dataset.countcmpl)-parseInt(itemOrd.dataset.countcmpl)).toString()
                         orderItems.del(obj.parentNode.dataset.orderid);
                         obj.parentElement.remove();
                         objCtg.dataset.count--;
@@ -438,6 +480,31 @@ document.addEventListener('DOMContentLoaded', ()=>{
                         break;
                 }
             }
+            if (obj.parentNode.classList[0]==='complItm'){
+                let grItemOrd=obj.parentNode.parentNode.parentNode;
+                let grItemCompl=obj.parentNode;
+                if (obj.classList[1]==='countCompl') {
+                    // dishId=grItem.dataset.dishid;
+                    let itemId=grItemOrd.dataset.orderid;
+                    let listId=grItemCompl.dataset.listid;
+                    // let cntCmpl=orderItems.calcCountComplsItem(grItemOrd.dataset.orderid);
+                    if (orderItems[itemId].idCtgDish===1){
+                        let actCountCompl=parseInt(grItemOrd.dataset.countcmpl);
+                        let selCount=parseInt(grItemCompl.dataset.countcmpl);
+                        let clkCount=parseInt(obj.value);
+                        if (actCountCompl==5 && (clkCount-selCount)==1){
+                            obj.value=selCount.toString();
+                        }else{
+                            actCountCompl+=(clkCount-selCount);
+                            grItemOrd.dataset.countcmpl=actCountCompl.toString();
+                            grItemCompl.dataset.countcmpl=obj.value;
+                            orderItems[itemId].countCompl=actCountCompl;
+                        }
+                        orderItems[itemId].complements[listId].count=parseInt(obj.value);
+                    }
+                }
+            }
+            // calc summ !!!!!!!!!!!!!!!!!!!!!!!!
         };
 
         document.querySelector('#dishes_list').onclick = (e)=>{
@@ -451,7 +518,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
         if (e.target.className==="dish") {
             priceAll.addPriceJSON(e.target.dataset.dishid);
             //added new item in order
-            // orderItems.addItem(e.target.id);
             orderItems.addItem(e.target.dataset.dishid);
 
             // complements/toppings/addons add price
@@ -470,15 +536,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
             }
 
             let divCtg = createGroupCtgr(e.target.id);
-            let divSelItem = createNewItem(e.target.id);//!!!
+            let divSelItem = createNewItem(e.target.id);
             divCtg.dataset.count++;
             // divSelItem.marginTop='15px';
+            divSelItem.setAttribute('id', orderItems.maxNumber);
             divSelItem.setAttribute('data-dishid', e.target.id.toString()); //--- data
             divSelItem.setAttribute('data-orderid', orderItems.maxNumber.toString()); // --- data
+            divSelItem.setAttribute('data-countcmpl','0'); //---data
+            divSelItem.setAttribute('data-priceid','1');// --- data
 
             divCtg.appendChild(divSelItem);
 
-            e.target.classList.add('select'); //!!!
+            e.target.classList.add('select');
         }
         };
 
