@@ -1,7 +1,0 @@
-{% block body %}
-    <div><h1>Hello, {{ user.first_name }}</h1></div>
-    <ul>
-        <li>Curently logged in as: {{ user.username }}</li>
-        <li><a href="{% url 'logout' %}">Logout</a></li>
-    </ul>
-{% endblock %}

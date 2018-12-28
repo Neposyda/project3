@@ -15,9 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from orders import views as views
 
 urlpatterns = [
     path("", include("orders.urls")),
-    # path("user/", include("users.urls"), name='user'),
+    path("", include("users.urls")),
     path("admin/", admin.site.urls),
+    # path("submit/", views.submit, name='submit')
 ]

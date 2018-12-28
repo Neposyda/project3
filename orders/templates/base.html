@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>project3 - PIZZA</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    {% load static %}
+    <script src="{% static 'index.js' %}">
+        {#localStorage.getItem('contentCategorie');#}
+    </script>
+    <style>
+        .container{
+            padding:10px;
+            margin: 5px;
+        }
+        .body_menu{
+            max-width: 50%;
+        }
+        .dish:hover, .complItm>input:hover, .btncompl:hover, .btntype:hover, .count:hover, .btncopy:hover, .btndel:hover{
+            background-color: tan;
+        }
+
+        .select {
+            background-color: lightpink;
+        }
+
+        .order_items{
+            background-color: antiquewhite;
+        }
+        .item{
+            margin: 5px;
+        }
+        .itemLine{
+            display: inline;
+        }
+        .btntype{
+            width:60px;
+        }
+        .price, .summ,  .count .countCompl {
+            width: 50px;
+        }
+        input {
+            padding: 0 5px 0 5px;
+        }
+        .hideon{
+            display: none;
+        }
+        .hideoff{
+            display: block;;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+        <div class="collapse navbar-collapse" id="navbar">
+        <ul class="nav navbar-nav navbar-left">
+            <li><a href="{% url 'menu' %}">Menu</a></li>
+            <li><a href="{% url 'orders' %}">Orders</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li class="hellouser">
+                {% if log %}
+                    Hello, {{ user }}
+                {% else %}
+                    <div>Register or loging, please.</div>
+                {% endif %}
+            </li>
+            <li>
+{#                <a href="{% url 'user' %}">#}
+                {% if log %}
+                    <a href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'log' %}">Login</a>
+                {% endif %}
+                </a>
+            </li>
+            <li><a href="{% url 'reg' %}">Register</a></li>
+        </ul>
+        </div>
+        </div>
+    </nav>
+    {% block content %}{% endblock %}
+</div>
+</body>

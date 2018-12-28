@@ -1,16 +1,24 @@
 {% extends "base.html" %}
 {% block title %} Registration: {% endblock %}
-{% block body %}
+{% block content %}
+
     <div class="container">
-        <div><h1>Registration new user:</h1></div>
-    <div>
-        <form action="{% url 'registration' %}">
-            <input type="text" id="name" autocomplete="off">
-            <input type="text" id="last_name" autocomplete="off">
-            <input type="password" id="pass" autocomplete="off">
-            <input type="password" id="pass_conf" autocomplete="off">
-            <input type="submit" id="reg">
+        <h2>Registration new user:</h2>
+        <div>
+            <div>{{ message }}</div>
+        <form action="{% url 'register' %}" method="post">
+            {% csrf_token %}
+            <p>Name:</p>
+            <input  name="username" type="text" autocomplete="off">
+            <p>Last name:</p>
+            <input name="lastname" type="text"  autocomplete="off">
+            <p>Password:</p>
+            <input name="password" type="password" autocomplete="off">
+{#            <p>Password confirm:</p>#}
+{#            <input type="password" id="pass_conf" autocomplete="off">#}
+            <p><input type="submit" id="reg"></p>
         </form>
-    </div>
+        </div>
+
     </div>
 {% endblock %}

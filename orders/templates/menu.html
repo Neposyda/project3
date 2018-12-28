@@ -1,55 +1,10 @@
-<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/html">
-<head>
-    <meta charset="UTF-8">
-    <title>project3 - menu</title>
-    {% load static %}
-    <script src="{% static 'index.js' %}">
-        {#localStorage.getItem('contentCategorie');#}
-    </script>
-    <style>
-        .body_menu{
-            max-width: 50%;
-        }
-        .dish:hover{
-            background-color: aquamarine;
-        }
-
-        .select {
-            background-color: darkkhaki;
-        }
-
-        .order_items{
-            background-color: antiquewhite;
-        }
-        .item{
-            margin: 5px;
-        }
-        .itemLine{
-            display: inline;
-        }
-        .btntype{
-            width:60px;
-        }
-        .price, .summ,  .count .countCompl {
-            width: 50px;
-        }
-        input {
-            padding: 0 5px 0 5px;
-        }
-        .hideon{
-            display: none;
-        }
-        .hideoff{
-            display: block;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
+{% extends "base.html" %}
+{% block content %}
         <h2 id="title_order">My order:</h2>
-        <div class="order">
-        </div>
+        <div class="order"></div>
+{#        <form action="submit" method="post" >#}
+        <input type="submit" id="submit" value="SUBMIT">
+{#        </form>#}
         <div class="body_menu">
             <div name="dishes">
                 <ul id="dishes_list">
@@ -61,7 +16,7 @@
                                 {% if categorie.id == dish.categorie_id %}
                                     <li class="dish" id="{{ dish.id }}" data-dishid={{ dish.id }} data-small={{ dish.small }}>{{ dish.name }}
                                         {% if dish.is_compl%}
-                                          (with compl.)
+                                           >>
                                         {% endif %}
 
                                         ($ {{ dish.small }}
@@ -79,7 +34,5 @@
             </div>
 {#            </div>#}
         </div>
-        <div class="footer"></div>
-    </div>
-</body>
-</html>
+
+{% endblock %}

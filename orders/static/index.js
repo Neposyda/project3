@@ -18,7 +18,7 @@ function createNewItem (dishId){
     const divType=document.createElement('input');{
     divType.setAttribute('type','button');
     divType.setAttribute('class', 'itemLine btntype');
-    divType.setAttribute('value','SMALL');
+    divType.setAttribute('value','small');
     divType.setAttribute('data-type','small'); // !!! data
     }
 
@@ -33,7 +33,7 @@ function createNewItem (dishId){
     const divPrice=document.createElement('input');{
     divPrice.setAttribute('type','text');
     divPrice.setAttribute('class','itemLine price');
-    divPrice.setAttribute('value', parseInt(document.getElementById(dishId).dataset.small).toFixed(2));
+    divPrice.setAttribute('value', parseFloat(document.getElementById(dishId).dataset.small).toFixed(2));
     divPrice.setAttribute('disabled','off');}
 
     const divSumm=document.createElement('input');{
@@ -60,7 +60,6 @@ function createNewItem (dishId){
         divCompl.setAttribute('value','>>');
         divCompl.setAttribute('data-count', '0');
         divCompl.setAttribute('data-open', '0');
-        // divCompl.setAttribute('-webkit-transform','rotate(90deg)');
         divCompl.setAttribute('name',dishId.toString());
         divNewItem.appendChild(divCompl);
     }
@@ -83,14 +82,14 @@ function  createGroupCtgr(dishId) {
         const divOrder = document.querySelector('.order');
 
         const h4Ctg=document.createElement('h4');
-        h4Ctg.innerText=ctgName + ':    total for group= ' +'$<summ.group>';
+        h4Ctg.innerText=ctgName;
 
         divCtgr=document.createElement('div');
         divCtgr.setAttribute('class', 'ctgr'+ctgId);
-        divCtgr.setAttribute('data-ctgrid',ctgId.toString());//!!!! data
-        divCtgr.setAttribute('data-count','0'); //!!!data
+        divCtgr.setAttribute('data-ctgrid',ctgId.toString());//--- data
+        divCtgr.setAttribute('data-count','0'); //--- data
         // divOrder.appendChild(h4Ctg);
-        divCtgr.appendChild(h4Ctg); //??????????????????
+        divCtgr.appendChild(h4Ctg);
         divOrder.appendChild(divCtgr);
     } else{
         divCtgr=document.querySelector('.order > .ctgr'+ctgId);
@@ -103,7 +102,6 @@ function createItemCompl (complItem){
 
     const divItemCompl=document.createElement('div');
     divItemCompl.setAttribute('class', 'complItm');
-    // divItemCompl.setAttribute('class','hideoff');
 
     const inpName=document.createElement('input');
     inpName.setAttribute('type','text');
@@ -135,7 +133,6 @@ function createItemCompl (complItem){
     inpPrice.setAttribute('value',pr);
     inpPrice.setAttribute('data-price', pr);
     inpPrice.setAttribute('disabled','off');
-    // inpPrice.setAttribute('max-width','100');
 
     divItemCompl.appendChild(inpPrice);
     }
@@ -168,11 +165,10 @@ function createCompl (dishId){
     return divCompl;
 }
 
-
 document.addEventListener('DOMContentLoaded', ()=>{
         // Open new request to get new posts.
         const request = new XMLHttpRequest();
-        request.open('GET', '/data');
+        request.open('GET', '/data/');
         request.send();
         request.onload = () => {
             const dataJSON = JSON.parse(request.responseText);
@@ -230,7 +226,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         //add function for priceAll --- adding price for selection dish
         priceAll.addPriceJSON=(dishId)=>{
             if (priceAll[dishId.toString()]){
-                console.log(priceAll[dishId.toString()]);
+                // console.log(priceAll[dishId.toString()]);
                 return true;
             }
             const request = new XMLHttpRequest();
@@ -285,58 +281,53 @@ document.addEventListener('DOMContentLoaded', ()=>{
             orderItems[orderItems.maxNumber]=selToOrd;
         };
         //add funct calculate and setting count complements for order item
-        orderItems.calcCountComplsItem=(self, itemsId='')=>{
+        orderItems.calcCountComplsItem=(itemsId)=>{
             let cnt=0;
-            let compl;
-            if (itemsId==='') {
-                // compl=self.complements;
-                compl=orderItems[self].complements;
-            }else{
-                compl=orderItems[itemsId].complements;
-            }
+            let compl=orderItems[itemsId].complements;
+
             compl.forEach(function (item) {
                 cnt+=item.count;
             });
-            compl.countCompl=cnt;
+            orderItems[itemsId].countCompl=cnt;
             return cnt;
         };
 
         //add funct calculate and setting count complements for order ite
-        orderItems.calcSummComplItem=(self, itemsId='')=>{
-            let typePr; let summ=0; let compl;
-            if(itemsId===''){
-                // compl=self.complements;
-                compl=orderItems[self].complements;
-            }else{
-                compl=orderItems[itemsId].complements;
-            };
-            typePr=orderItems.idCtgPrice;
+        orderItems.calcSummComplItem=(itemsId)=>{
+            let ctgPr=orderItems[itemsId].idCtgPrice;
+            let typePr=orderItems[itemsId].type;
+            let compl=orderItems[itemsId].complements;
+            let summ=0;
+
+            // typePr=orderItems.idCtgPrice;
             for (item in compl){
-                summ+= priceAll.get(compl[item].id, orderItems[itemsId].idCtgPrice, typePr).toFixed(2)*compl[item].count;
+                let pr =priceAll.get( compl[item].id, ctgPr, typePr);
+                summ+= pr*compl[item].count;
             }
-            return summ.toFixed(2);
+            return summ;
         };
 
         //add funct calculate and setting summ all complements for order item
-        orderItems.calcSummItem=(self, itemsId='')=>{
-            let ordrItem=(itemsId==='')?orderItems[self]:orderItems[itemsId];
-            let summ=ordrItem.countDish*orderItems.price+orderItems.calcSummComplItem(itemsId)
+        orderItems.calcSummItem=(itemsId)=>{
+            // let ordrItem=orderItems[itemsId];
+            let summCompl=orderItems.calcSummComplItem(itemsId);
+            let pr = priceAll.get(orderItems[itemsId].idDish,orderItems[itemsId].idCtgPrice, orderItems[itemsId].type);
+
+            if (orderItems[itemsId].price==0){orderItems[itemsId].price=pr}else{pr=orderItems[itemsId].price};//??????
+
+            let summ=orderItems[itemsId].countDish*(pr+summCompl);
+            orderItems[itemsId].summ=summ;
+            return summ;
         };
 
-        //add funct calc ctg price for pizza for order item
-        orderItems.setCtgPriceForPizza=(self, itemsId='')=>{
+        //add funct calc and set ctg price for pizza for order item
+        orderItems.calcCtgPriceForPizza=(itemsId)=>{
             let item;
-            if (itemsId===''){
-                item=orderItems[self];
-            } else {
-                item=orderItems[itemsId];
-            }
-
-            if (item[itemsId]!==1){
+            item=orderItems[itemsId];
+            if (item.idCtgDish!==1){
                 console.log(itemsId+ ' --- no Pizza');
-                return 0;
+                return 1;
             }
-
             let idCtgPr=1;
             switch (item.countCompl) {
                 case 0:
@@ -358,11 +349,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
                     idCtgPr=5;
                     break;
             }
-            if (itemsId===''){
-                self.idCtgPrice=idCtgPr;
-            }else{
-                orderItems[itemsId].idCtgPrice=idCtgPr;
-            }
+            orderItems[itemsId].idCtgPrice=idCtgPr;
+            return idCtgPr;
         };
 
         orderItems.getCountDish=(dishId)=>{
@@ -373,55 +361,71 @@ document.addEventListener('DOMContentLoaded', ()=>{
             }
             return c;
         }
+
         //add funct del item of orderItems
         orderItems.del=(itemId)=>{
             delete orderItems[itemId];
-            --orderItems.countDish;
+            orderItems.countDish=Math.max(0,--orderItems.countDish);
         }
 
-        // add funct set price for order item  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // orderItems.calcPrice=(itemsId)=>{
-        //     let prItem=0, prCompl=0;
-        //     let ctgPrCompl=orderItems[itemsId].idCtgPrice
-        // };
+        //add funct get all items of
+        orderItems.getAllItems=()=>{
+            let rezDict=[]
+                for (i in orderItems){
+                    if(typeof(orderItems[i])=='object'){
+                        rezDict=rezDict.concat(orderItems[i]);
+                    }
+                }
+                return rezDict;
+        }
 
+        orderItems.clearItems=()=>{
+            orderItems.countDish=0;
+            orderItems.maxNumber=0;
+            for (i in orderItems){
+                if (typeof (orderItems[i])=='object'){
+                    delete(orderItems[i]);
+                }
+            }
+        }
         //=====================================================================
+
 
         //event listener for orders button
         document.querySelector('.order ').onclick=(e)=>{
             let obj=e.target;
-            if (obj.classList[1]==='count'){
-                if (obj.parentElement.childNodes[4].value==0){
-                    obj.parentElement.childNodes[4].value=priceAll.get(obj.parentNode.dataset.dishid);
-                }
-                let price=parseFloat(obj.parentElement.childNodes[4].value).toFixed(2);
-                let count=parseInt(obj.value);
-                obj.parentElement.childNodes[5].value=(count*price).toFixed(2);
+            let ctgId = obj.parentElement.parentElement.dataset.ctgrid;
+            let k=(ctgId==1 || ctgId==2)? 0:1;
+            let objParent=obj.parentNode;
 
+            if (obj.classList[1]==='count'){
+                orderItems[objParent.dataset.orderid].countDish=parseInt(obj.value);
+                objParent.childNodes[5-k].value=orderItems.calcSummItem(objParent.dataset.orderid).toFixed(2);
+                if (ctgId==1){
+                    let ctgPr=orderItems.calcCtgPriceForPizza(objParent.dataset.orderid);
+                    objParent.dataset.priceid=ctgPr;
+                    orderItems[objParent.dataset.orderid].idCtgPrice=ctgPr;
+                }
+                let summ=orderItems.calcSummItem(objParent.dataset.orderid);
+                objParent.childNodes[5-k].value=summ.toFixed(2);
             }
             if (obj.type==='button') {
                 switch (obj.classList[1]) {
                     case 'btntype':
                         let type=(obj.dataset.type==='small')?'large':'small';
+                        let price=priceAll.get(
+                            orderItems[objParent.dataset.orderid].idDish,
+                            orderItems[objParent.dataset.orderid].idCtgPrice,
+                            type);
+                        if (price==0) return 0;
+
                         obj.dataset.type=type;
-                        obj.value=(type==='small')?type.toUpperCase():type;
+                        obj.value=(type==='large')?type.toUpperCase():type;
                         orderItems[obj.parentNode.dataset.orderid]['type']=type;
-                        let price=priceAll.get(obj.parentNode.dataset.dishid, obj.parentNode.dataset.priceid, type);
-                        if (obj.parentNode.lastChild.classList[0]==='complGrp'){
-                            switch (orderItems[obj.parentNode.id].idCtgDish){
-                                case 1: // pizza
-                                    
-                                    break;
-                                case 2: //subs
+                        orderItems[objParent.dataset.orderid].price=price;
 
-                                    break;
-                            }
-                        }
-                        let count=parseInt(obj.parentElement.childNodes[3].value);
-                        obj.parentElement.childNodes[4].value=price;
-                        obj.parentElement.childNodes[5].value=(count*price).toFixed(2);
-
-                        // obj.value=(obj.value==='Small')?'Large':'Small';
+                        obj.parentElement.childNodes[4-k].value=price.toFixed(2);
+                        obj.parentElement.childNodes[5-k].value=orderItems.calcSummItem(objParent.dataset.orderid).toFixed(2);
                         break;
                     case 'btncompl':
                         let objPar=obj.parentNode;
@@ -429,7 +433,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
                             obj.dataset.open='1';
                             obj.value='<<';
                             if (objPar.dataset.countcmpl>0){
-                                objPar.lastChild.classList[1]='hideon';//??????????????????????
+                                objPar.lastChild.classList.remove(objPar.lastChild.classList[1]);
+                                objPar.lastChild.classList.add('hideoff');
                             }else{
                             objPar.appendChild(createCompl(obj.name));
                             }
@@ -437,7 +442,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
                             obj.dataset.open='0';
                             obj.value='>>';
                             if(objPar.dataset.countcmpl>0){
-                                objPar.lastChild.classList[1]='hideoff';// ????????????????????
+                                objPar.lastChild.classList.remove(objPar.lastChild.classList[1]);
+                                objPar.lastChild.classList.add('hideon');
                             }else{
                                 objPar.removeChild(objPar.lastChild);
                             }
@@ -447,19 +453,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
                         const groupItem=obj.parentElement.parentElement;
                         const cloneItem=obj.parentElement.cloneNode(true);
                         orderItems.addItem(obj.parentNode.dataset.dishid);
-                        cloneItem.setAttribute('id',orderItems.maxNumber);
                         cloneItem.setAttribute('data-orderid',orderItems.maxNumber); // ---- data
                         cloneItem.setAttribute('data-priceid','1'); // --- data
+                        cloneItem.setAttribute('data-countcmpl','0'); // --- data
+
+                        if(groupItem.dataset.ctgid==1 || groupItem.dataset.ctgid==2){
                         cloneItem.childNodes[1].value='>>';
-                        cloneItem.childNodes[1].dataset.open='0';
-                        cloneItem.childNodes[2].value='SMALL'; //type
-                        cloneItem.childNodes[2].dataset.type='small'; // --- data in type
-                        cloneItem.childNodes[3].value=0; // count
-                        cloneItem.childNodes[4].value=priceAll.get(cloneItem.dataset.dishid).toFixed(2); // price
-                        cloneItem.childNodes[5].value='0.00'; // summ
+                        cloneItem.childNodes[1].dataset.open='0'; // --- data
+                        }
+                        cloneItem.childNodes[2-k].value='small'; //type
+                        cloneItem.childNodes[2-k].dataset.type='small'; // --- data
+                        cloneItem.childNodes[3-k].value=0; // count
+                        cloneItem.childNodes[4-k].value=priceAll.get(cloneItem.dataset.dishid).toFixed(2); // price
+                        cloneItem.childNodes[5-k].value='0.00'; // summ
                         // groupItem.appendChild(cloneItem);
                         if (cloneItem.lastElementChild.classList[0]=='complGrp'){
                             cloneItem.lastChild.remove();
+                            // cloneItem.remove(cloneItem.lastChild);
                         }
                         groupItem.insertBefore(cloneItem, obj.parentElement);
                         groupItem.dataset.count++;
@@ -484,14 +494,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 let grItemOrd=obj.parentNode.parentNode.parentNode;
                 let grItemCompl=obj.parentNode;
                 if (obj.classList[1]==='countCompl') {
-                    // dishId=grItem.dataset.dishid;
                     let itemId=grItemOrd.dataset.orderid;
                     let listId=grItemCompl.dataset.listid;
-                    // let cntCmpl=orderItems.calcCountComplsItem(grItemOrd.dataset.orderid);
+                    let actCountCompl=parseInt(grItemOrd.dataset.countcmpl);
+                    let selCount=parseInt(grItemCompl.dataset.countcmpl);
+                    let clkCount=parseInt(obj.value);
                     if (orderItems[itemId].idCtgDish===1){
-                        let actCountCompl=parseInt(grItemOrd.dataset.countcmpl);
-                        let selCount=parseInt(grItemCompl.dataset.countcmpl);
-                        let clkCount=parseInt(obj.value);
                         if (actCountCompl==5 && (clkCount-selCount)==1){
                             obj.value=selCount.toString();
                         }else{
@@ -500,11 +508,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
                             grItemCompl.dataset.countcmpl=obj.value;
                             orderItems[itemId].countCompl=actCountCompl;
                         }
-                        orderItems[itemId].complements[listId].count=parseInt(obj.value);
+                        grItemOrd.dataset.priceid=orderItems.calcCtgPriceForPizza(itemId);//?????
+                        orderItems[itemId].price=priceAll.get(
+                            grItemOrd.dataset.dishid,
+                            grItemOrd.dataset.priceid,
+                            orderItems[itemId].type);
+                    }else{
+                        actCountCompl+=(clkCount-selCount);
+                        grItemOrd.dataset.countcmpl=actCountCompl.toString();
+                        grItemCompl.dataset.countcmpl=obj.value;
+                        orderItems[itemId].countCompl=actCountCompl;
                     }
+                    orderItems[itemId].complements[listId].count=parseInt(obj.value);
+                    grItemOrd.childNodes[4].value=orderItems[itemId].price.toFixed(2);
+                    grItemOrd.childNodes[5].value=orderItems.calcSummItem(itemId).toFixed(2);
                 }
             }
-            // calc summ !!!!!!!!!!!!!!!!!!!!!!!!
         };
 
         document.querySelector('#dishes_list').onclick = (e)=>{
@@ -538,8 +557,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
             let divCtg = createGroupCtgr(e.target.id);
             let divSelItem = createNewItem(e.target.id);
             divCtg.dataset.count++;
-            // divSelItem.marginTop='15px';
-            divSelItem.setAttribute('id', orderItems.maxNumber);
             divSelItem.setAttribute('data-dishid', e.target.id.toString()); //--- data
             divSelItem.setAttribute('data-orderid', orderItems.maxNumber.toString()); // --- data
             divSelItem.setAttribute('data-countcmpl','0'); //---data
@@ -555,4 +572,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
         document.querySelector('#title_order').onclick=()=>{
             document.querySelector('.order').hidden=!document.querySelector('.order').hidden;
         };
+
+        document.querySelector('#submit').onclick=()=>{
+            const request = new XMLHttpRequest();
+            let dataord=JSON.stringify(orderItems.getAllItems());
+            request.open('GET', '/'+dataord);
+            // request.setRequestHeader("Content-Type", "application/json");
+            request.send();
+            request.onload = () => {
+                const dataJSON = JSON.parse(request.responseText);
+                request.abort();
+                console.log('rez:'+dataJSON.rez); //!!!!!
+            orderItems
+            }
+        };
+
+
 });

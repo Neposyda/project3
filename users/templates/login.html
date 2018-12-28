@@ -1,21 +1,27 @@
 {% extends "base.html" %}
-<link type="text/css" href="/static/login_logout.css" rel="stylesheet">
+{#<link type="text/css" href="/static/login_logout.css" rel="stylesheet">#}
 {% block title %}Вхід{% endblock %}
-{% block body %}
-    <div>
+{% block content %}
+{#    <div>#}
         <h2>Вхід</h2>
         {% if message %}
             <div>
-                {{ message }}
+                !!! {{ message }}
             </div>
         {% endif %}
+{#        <form action="" method="post">#}
+{#            {% csrf_token %}#}
+{#            {{ form.as_p }}#}
+{#            <input type="submit" value="Login"/>#}
+{#            <input type="hidden" name="next" value="{{ next }}"/>#}
+{#        </form>#}
         <div>
         <form action="{% url 'login' %}" method="post">
             {% csrf_token %}
-            <div><input name="username" autocomplete="off" type="text"/></div>
-            <div><input name="password" autocomplete="off" type="password"/></div>
-            <div><input type="submit" value="Login"/></div>
+            <p>Name:</p> <input name="username" autocomplete="off" type="text"/>
+            <p>Password:</p> <input name="password" autocomplete="off" type="password"/>
+            <p><input type="submit" value="Login"/></p>
         </form>
         </div>
-    </div>
+{#    </div>#}
 {% endblock %}

@@ -51,6 +51,7 @@ class Orders(models.Model):
     data = models.DateTimeField(blank=False)
     total_cost = models.DecimalField(blank=False, max_digits=5, decimal_places=2)
     status = models.IntegerField(choices=((1, 'edit'),(2, 'completed'), (3, 'paid'), (4, 'done')), default=1)
+    user = models.CharField(blank=True, max_length=15)
 
     def __str__(self):
         return f"{self.number}/ {self.data.date()} / {self.total_cost} / {self.status}"
@@ -61,6 +62,18 @@ class OrdersItems(models.Model):
     dish = models.ForeignKey(Dish, blank=False, on_delete=models.CASCADE)
     count = models.IntegerField(blank=False, default=0)
     price = models.ForeignKey(Prices, blank=False, on_delete=models.CASCADE)
+    type = models.IntegerField(choices=((1, 'small'), (2, 'large')), default=1)
 
     def __str__(self):
         return self.order.number
+
+
+class ItemComplements(models.Model):
+    itemord = models.ForeignKey(OrdersItems, blank=False, on_delete=models.CASCADE)
+    dishcompl = models.ForeignKey(Dish, blank=False, on_delete=models.CASCADE)
+    price = models.ForeignKey(Price, blank=False, on_delete=models.CASCADE)
+    count = models.IntegerField(blank=False, default=0)
+
+    def ___str___ (self):
+        return self.complements.name
+
