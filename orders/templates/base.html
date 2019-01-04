@@ -50,6 +50,18 @@
         .hideoff{
             display: block;;
         }
+    .modal {
+        {#display: none; /* Hidden by default */#}
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
     </style>
 </head>
 <body>
@@ -61,28 +73,38 @@
             <li><a href="{% url 'menu' %}">Menu</a></li>
             <li><a href="{% url 'orders' %}">Orders</a></li>
         </ul>
-        <ul class="nav navbar-nav navbar-right">
+        <ul class="nav navbar-nav navbar-right loging">
             <li class="hellouser">
+                <a>
                 {% if log %}
                     Hello, {{ user }}
                 {% else %}
-                    <div>Register or loging, please.</div>
-                {% endif %}
-            </li>
-            <li>
-{#                <a href="{% url 'user' %}">#}
-                {% if log %}
-                    <a href="{% url 'logout' %}">Logout</a>
-                {% else %}
-                    <a href="{% url 'log' %}">Login</a>
+                    Register or loging, please.
                 {% endif %}
                 </a>
             </li>
-            <li><a href="{% url 'reg' %}">Register</a></li>
+            {% if log %}
+                <li class="logout">
+{#                  <a href="{% url 'logout' %}">Logout</a>#}
+                    <a>Logout</a>
+                </li>
+            {% else %}
+{#                    <a href="{% url 'log' %}">Login</a>#}
+                <li class="login">
+                    <a>Login</a>
+                </li>
+            {% endif %}
+            <li class="register">
+{#                <a href="{% url 'reg' %}">Register</a>#}
+                <a>Register</a>
+            </li>
         </ul>
         </div>
         </div>
     </nav>
+    <div id="myModal" class="modal" style="display: none">
+{#        modal window#}
+    </div>
     {% block content %}{% endblock %}
 </div>
 </body>

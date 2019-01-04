@@ -54,7 +54,7 @@ class Orders(models.Model):
     user = models.CharField(blank=True, max_length=15)
 
     def __str__(self):
-        return f"{self.number}/ {self.data.date()} / {self.total_cost} / {self.status}"
+        return f"{self.data.date()}: ord.{self.number}- ${self.total_cost}/{self.status}"
 
 
 class OrdersItems(models.Model):
@@ -65,7 +65,7 @@ class OrdersItems(models.Model):
     type = models.IntegerField(choices=((1, 'small'), (2, 'large')), default=1)
 
     def __str__(self):
-        return self.order.number
+        return f"ord. {self.order.number}: {self.dish.name}"
 
 
 class ItemComplements(models.Model):

@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-# from django.core import serializers
 from django.shortcuts import render
 from django.db import models
 from orders.models import Categorie, PriceCategories, Price, Dish, Orders, OrdersItems, ItemComplements
@@ -80,8 +79,11 @@ def price(request, dishId):
 
 def submit(request, dataord):
     rez = False
-    data = json.loads(dataord)
-    summ=0.00
+    try:
+        data = json.loads(dataord)
+    except:
+        return JsonResponse({'rez': rez})
+    summ = 0.00
     order = Orders(
         number=Orders.objects.count(),
         data=datetime.now(),
@@ -96,7 +98,7 @@ def submit(request, dataord):
             dish_id=item['idDish'],
             count=item['countDish'],
             price_id=item['idCtgPrice'],
-            type=1 if item['type']=='small' else 2 #?????????????
+            type=1 if item['type'] == 'small' else 2 #?????????????
         )
         itmorder.save()
 

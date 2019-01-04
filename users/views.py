@@ -1,18 +1,42 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
+import json
+
+
+
+def loging(request, status):
+    # print(status)
+    inpName = {
+        'type': 'text',
+        'id': 'username',
+        'autocomplete': 'off',
+        'required': 'true',
+        'margin': '5px'
+    }
+
+    inpPassw = {
+        'type': 'password',
+        'id': 'password',
+        'autocomplete': 'off',
+        'required': 'true',
+        'margin': '5px'
+    }
+
+    # print(rez)
+    return JsonResponse({'username': inpName, 'password': inpPassw})
 
 
 def log_start(request):
     if not request.user.is_authenticated:
         return render(request, "login.html", {"message": None})
-
     context = {
         "user": request.user.username,
         "log": True
     }
+
     return render(request, "index.html", context)
 
 
