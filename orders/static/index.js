@@ -1,5 +1,6 @@
+let stLog=false;
 let ctgDishAll, dishAll, priceAll={};
-let orderItems={'countDish':0, 'maxNumber':0 };
+let orderItems={'countDish':0, 'maxNumber':0, 'total':0.00 };
 
 
 function createNewItem (dishId){
@@ -173,6 +174,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         request.onload = () => {
             const dataJSON = JSON.parse(request.responseText);
             request.abort();
+            stLog=dataJSON['log'];
 
             //=======================================================
             ctgDishAll=dataJSON['categories_dish_list'];
@@ -320,6 +322,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
             return summ;
         };
 
+        orderItems.calcSummOrder=()=>{
+            orderItems.total=0.00;
+            for(i in orderItems){
+                if (typeof(orderItems[i]) == 'object'){
+                    orderItems.total+=orderItems[i].summ;
+                    // console.log(i + ': type ' + typeof(orderItems[i]) + ": " + orderItems.total + '..' + orderItems[i].summ);
+                };
+            };
+            return orderItems.total;
+        };
+
         //add funct calc and set ctg price for pizza for order item
         orderItems.calcCtgPriceForPizza=(itemsId)=>{
             let item;
@@ -392,82 +405,85 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 
         //event listener for orders button
-        document.querySelector('.order ').onclick=(e)=>{
-            let obj=e.target;
+    if (document.querySelector('.order ')) {
+        document.querySelector('.order ').onclick = (e) => {
+            let obj = e.target;
             let ctgId = obj.parentElement.parentElement.dataset.ctgrid;
-            let k=(ctgId==1 || ctgId==2)? 0:1;
-            let objParent=obj.parentNode;
+            let k = (ctgId == 1 || ctgId == 2) ? 0 : 1;
+            let objParent = obj.parentNode;
 
-            if (obj.classList[1]==='count'){
-                orderItems[objParent.dataset.orderid].countDish=parseInt(obj.value);
-                objParent.childNodes[5-k].value=orderItems.calcSummItem(objParent.dataset.orderid).toFixed(2);
-                if (ctgId==1){
-                    let ctgPr=orderItems.calcCtgPriceForPizza(objParent.dataset.orderid);
-                    objParent.dataset.priceid=ctgPr;
-                    orderItems[objParent.dataset.orderid].idCtgPrice=ctgPr;
+            if (obj.classList[1] === 'count') {
+                orderItems[objParent.dataset.orderid].countDish = parseInt(obj.value);
+                objParent.childNodes[5 - k].value = orderItems.calcSummItem(objParent.dataset.orderid).toFixed(2);
+                if (ctgId == 1) {
+                    let ctgPr = orderItems.calcCtgPriceForPizza(objParent.dataset.orderid);
+                    objParent.dataset.priceid = ctgPr;
+                    orderItems[objParent.dataset.orderid].idCtgPrice = ctgPr;
                 }
-                let summ=orderItems.calcSummItem(objParent.dataset.orderid);
-                objParent.childNodes[5-k].value=summ.toFixed(2);
+                let summ = orderItems.calcSummItem(objParent.dataset.orderid);
+                objParent.childNodes[5 - k].value = summ.toFixed(2);
+                document.getElementById('total_order').innerText='$'+ orderItems.calcSummOrder().toFixed(2);//??????????????
             }
-            if (obj.type==='button') {
+            if (obj.type === 'button') {
                 switch (obj.classList[1]) {
                     case 'btntype':
-                        let type=(obj.dataset.type==='small')?'large':'small';
-                        let price=priceAll.get(
+                        let type = (obj.dataset.type === 'small') ? 'large' : 'small';
+                        let price = priceAll.get(
                             orderItems[objParent.dataset.orderid].idDish,
                             orderItems[objParent.dataset.orderid].idCtgPrice,
                             type);
-                        if (price==0) return 0;
+                        if (price == 0) return 0;
 
-                        obj.dataset.type=type;
-                        obj.value=(type==='large')?type.toUpperCase():type;
-                        orderItems[obj.parentNode.dataset.orderid]['type']=type;
-                        orderItems[objParent.dataset.orderid].price=price;
+                        obj.dataset.type = type;
+                        obj.value = (type === 'large') ? type.toUpperCase() : type;
+                        orderItems[obj.parentNode.dataset.orderid]['type'] = type;
+                        orderItems[objParent.dataset.orderid].price = price;
 
-                        obj.parentElement.childNodes[4-k].value=price.toFixed(2);
-                        obj.parentElement.childNodes[5-k].value=orderItems.calcSummItem(objParent.dataset.orderid).toFixed(2);
+                        obj.parentElement.childNodes[4 - k].value = price.toFixed(2);
+                        obj.parentElement.childNodes[5 - k].value = orderItems.calcSummItem(objParent.dataset.orderid).toFixed(2);
+                        document.getElementById('total_order').innerText='$'+ orderItems.calcSummOrder().toFixed(2); //????
                         break;
                     case 'btncompl':
-                        let objPar=obj.parentNode;
-                        if (obj.dataset.open==='0'){
-                            obj.dataset.open='1';
-                            obj.value='<<';
-                            if (objPar.dataset.countcmpl>0){
+                        let objPar = obj.parentNode;
+                        if (obj.dataset.open === '0') {
+                            obj.dataset.open = '1';
+                            obj.value = '<<';
+                            if (objPar.dataset.countcmpl > 0) {
                                 objPar.lastChild.classList.remove(objPar.lastChild.classList[1]);
                                 objPar.lastChild.classList.add('hideoff');
-                            }else{
-                            objPar.appendChild(createCompl(obj.name));
+                            } else {
+                                objPar.appendChild(createCompl(obj.name));
                             }
-                        }else{
-                            obj.dataset.open='0';
-                            obj.value='>>';
-                            if(objPar.dataset.countcmpl>0){
+                        } else {
+                            obj.dataset.open = '0';
+                            obj.value = '>>';
+                            if (objPar.dataset.countcmpl > 0) {
                                 objPar.lastChild.classList.remove(objPar.lastChild.classList[1]);
                                 objPar.lastChild.classList.add('hideon');
-                            }else{
+                            } else {
                                 objPar.removeChild(objPar.lastChild);
                             }
                         }
                         break;
                     case 'btncopy':
-                        const groupItem=obj.parentElement.parentElement;
-                        const cloneItem=obj.parentElement.cloneNode(true);
+                        const groupItem = obj.parentElement.parentElement;
+                        const cloneItem = obj.parentElement.cloneNode(true);
                         orderItems.addItem(obj.parentNode.dataset.dishid);
-                        cloneItem.setAttribute('data-orderid',orderItems.maxNumber); // ---- data
-                        cloneItem.setAttribute('data-priceid','1'); // --- data
-                        cloneItem.setAttribute('data-countcmpl','0'); // --- data
+                        cloneItem.setAttribute('data-orderid', orderItems.maxNumber); // ---- data
+                        cloneItem.setAttribute('data-priceid', '1'); // --- data
+                        cloneItem.setAttribute('data-countcmpl', '0'); // --- data
 
-                        if(groupItem.dataset.ctgid==1 || groupItem.dataset.ctgid==2){
-                        cloneItem.childNodes[1].value='>>';
-                        cloneItem.childNodes[1].dataset.open='0'; // --- data
+                        if (groupItem.dataset.ctgid == 1 || groupItem.dataset.ctgid == 2) {
+                            cloneItem.childNodes[1].value = '>>';
+                            cloneItem.childNodes[1].dataset.open = '0'; // --- data
                         }
-                        cloneItem.childNodes[2-k].value='small'; //type
-                        cloneItem.childNodes[2-k].dataset.type='small'; // --- data
-                        cloneItem.childNodes[3-k].value=0; // count
-                        cloneItem.childNodes[4-k].value=priceAll.get(cloneItem.dataset.dishid).toFixed(2); // price
-                        cloneItem.childNodes[5-k].value='0.00'; // summ
+                        cloneItem.childNodes[2 - k].value = 'small'; //type
+                        cloneItem.childNodes[2 - k].dataset.type = 'small'; // --- data
+                        cloneItem.childNodes[3 - k].value = 0; // count
+                        cloneItem.childNodes[4 - k].value = priceAll.get(cloneItem.dataset.dishid).toFixed(2); // price
+                        cloneItem.childNodes[5 - k].value = '0.00'; // summ
                         // groupItem.appendChild(cloneItem);
-                        if (cloneItem.lastElementChild.classList[0]=='complGrp'){
+                        if (cloneItem.lastElementChild.classList[0] == 'complGrp') {
                             cloneItem.lastChild.remove();
                             // cloneItem.remove(cloneItem.lastChild);
                         }
@@ -475,117 +491,137 @@ document.addEventListener('DOMContentLoaded', ()=>{
                         groupItem.dataset.count++;
                         break;
                     case 'btndel':
-                        let countSelDish=orderItems.getCountDish(obj.parentNode.dataset.dishid);
-                        let objCtg=obj.parentElement.parentElement;
-                        let itemOrd=obj.parentNode;
-                        objCtg.dataset.councmpl=(parseInt(objCtg.dataset.countcmpl)-parseInt(itemOrd.dataset.countcmpl)).toString()
+                        let countSelDish = orderItems.getCountDish(obj.parentNode.dataset.dishid);
+                        let objCtg = obj.parentElement.parentElement;
+                        let itemOrd = obj.parentNode;
+                        objCtg.dataset.councmpl = (parseInt(objCtg.dataset.countcmpl) - parseInt(itemOrd.dataset.countcmpl)).toString()
                         orderItems.del(obj.parentNode.dataset.orderid);
                         obj.parentElement.remove();
                         objCtg.dataset.count--;
-                        if (countSelDish===1){
-                            const objDish=document.getElementById(obj.parentNode.dataset.dishid);
+                        if (countSelDish === 1) {
+                            const objDish = document.getElementById(obj.parentNode.dataset.dishid);
                             objDish.classList.remove(objDish.classList[1]); // unselect
                         }
-                        if (objCtg.dataset.count == 0){objCtg.remove();}
+                        if (objCtg.dataset.count == 0) {
+                            objCtg.remove();
+                        }
                         break;
                 }
             }
-            if (obj.parentNode.classList[0]==='complItm'){
-                let grItemOrd=obj.parentNode.parentNode.parentNode;
-                let grItemCompl=obj.parentNode;
-                if (obj.classList[1]==='countCompl') {
-                    let itemId=grItemOrd.dataset.orderid;
-                    let listId=grItemCompl.dataset.listid;
-                    let actCountCompl=parseInt(grItemOrd.dataset.countcmpl);
-                    let selCount=parseInt(grItemCompl.dataset.countcmpl);
-                    let clkCount=parseInt(obj.value);
-                    if (orderItems[itemId].idCtgDish===1){
-                        if (actCountCompl==5 && (clkCount-selCount)==1){
-                            obj.value=selCount.toString();
-                        }else{
-                            actCountCompl+=(clkCount-selCount);
-                            grItemOrd.dataset.countcmpl=actCountCompl.toString();
-                            grItemCompl.dataset.countcmpl=obj.value;
-                            orderItems[itemId].countCompl=actCountCompl;
+            if (obj.parentNode.classList[0] === 'complItm') {
+                let grItemOrd = obj.parentNode.parentNode.parentNode;
+                let grItemCompl = obj.parentNode;
+                if (obj.classList[1] === 'countCompl') {
+                    let itemId = grItemOrd.dataset.orderid;
+                    let listId = grItemCompl.dataset.listid;
+                    let actCountCompl = parseInt(grItemOrd.dataset.countcmpl);
+                    let selCount = parseInt(grItemCompl.dataset.countcmpl);
+                    let clkCount = parseInt(obj.value);
+                    if (orderItems[itemId].idCtgDish === 1) {
+                        if (actCountCompl == 5 && (clkCount - selCount) == 1) {
+                            obj.value = selCount.toString();
+                        } else {
+                            actCountCompl += (clkCount - selCount);
+                            grItemOrd.dataset.countcmpl = actCountCompl.toString();
+                            grItemCompl.dataset.countcmpl = obj.value;
+                            orderItems[itemId].countCompl = actCountCompl;
                         }
-                        grItemOrd.dataset.priceid=orderItems.calcCtgPriceForPizza(itemId);//?????
-                        orderItems[itemId].price=priceAll.get(
+                        grItemOrd.dataset.priceid = orderItems.calcCtgPriceForPizza(itemId);
+                        orderItems[itemId].price = priceAll.get(
                             grItemOrd.dataset.dishid,
                             grItemOrd.dataset.priceid,
                             orderItems[itemId].type);
-                    }else{
-                        actCountCompl+=(clkCount-selCount);
-                        grItemOrd.dataset.countcmpl=actCountCompl.toString();
-                        grItemCompl.dataset.countcmpl=obj.value;
-                        orderItems[itemId].countCompl=actCountCompl;
+                    } else {
+                        actCountCompl += (clkCount - selCount);
+                        grItemOrd.dataset.countcmpl = actCountCompl.toString();
+                        grItemCompl.dataset.countcmpl = obj.value;
+                        orderItems[itemId].countCompl = actCountCompl;
                     }
-                    orderItems[itemId].complements[listId].count=parseInt(obj.value);
-                    grItemOrd.childNodes[4].value=orderItems[itemId].price.toFixed(2);
-                    grItemOrd.childNodes[5].value=orderItems.calcSummItem(itemId).toFixed(2);
+                    orderItems[itemId].complements[listId].count = parseInt(obj.value);
+                    grItemOrd.childNodes[4].value = orderItems[itemId].price.toFixed(2);
+                    grItemOrd.childNodes[5].value = orderItems.calcSummItem(itemId).toFixed(2);
+                    document.getElementById('total_order').innerText='$' + orderItems.calcSummOrder().toFixed(2);//???????
                 }
             }
         };
+    }else{console.log("document.querySelector('.order ') is NONE")};
 
-        document.querySelector('#dishes_list').onclick = (e)=>{
-        // click group name zgort rozg grupu menyu
-        if (e.target.className==="ctgr_name") {
-            const v = document.querySelector("ul > ."+e.target.id);
-            v.hidden= !v.hidden;
-        }
-
-        //select dish
-        if (e.target.className==="dish") {
-            priceAll.addPriceJSON(e.target.dataset.dishid);
-            //added new item in order
-            orderItems.addItem(e.target.dataset.dishid);
-
-            // complements/toppings/addons add price
-            let itemCtgId = dishAll.get(e.target.id).categorie_id;
-            //check have it compl.
-            if (ctgDishAll.getListForSubtype(itemCtgId, true)) {
-            //added prices compl. in priceAll
-                let ctgCompl = ctgDishAll.getListForSubtype(itemCtgId);
-                dishAll.forEach(function (itemDish) {
-                    ctgCompl.forEach(function (itemCtg) {
-                        if (itemDish.categorie_id === itemCtg.id) {
-                            priceAll.addPriceJSON(itemDish.id);
-                        }
-                    });
-                });
+    if (document.querySelector('#dishes_list')) {
+        document.querySelector('#dishes_list').onclick = (e) => {
+            // click group name zgort rozg grupu menyu
+            if (e.target.className === "ctgr_name") {
+                const v = document.querySelector("ul > ." + e.target.id);
+                v.hidden = !v.hidden;
             }
 
-            let divCtg = createGroupCtgr(e.target.id);
-            let divSelItem = createNewItem(e.target.id);
-            divCtg.dataset.count++;
-            divSelItem.setAttribute('data-dishid', e.target.id.toString()); //--- data
-            divSelItem.setAttribute('data-orderid', orderItems.maxNumber.toString()); // --- data
-            divSelItem.setAttribute('data-countcmpl','0'); //---data
-            divSelItem.setAttribute('data-priceid','1');// --- data
+            //select dish
+            if (e.target.className === "dish") {
+                priceAll.addPriceJSON(e.target.dataset.dishid);
+                //added new item in order
+                orderItems.addItem(e.target.dataset.dishid);
 
-            divCtg.appendChild(divSelItem);
+                // complements/toppings/addons add price
+                let itemCtgId = dishAll.get(e.target.id).categorie_id;
+                //check have it compl.
+                if (ctgDishAll.getListForSubtype(itemCtgId, true)) {
+                    //added prices compl. in priceAll
+                    let ctgCompl = ctgDishAll.getListForSubtype(itemCtgId);
+                    dishAll.forEach(function (itemDish) {
+                        ctgCompl.forEach(function (itemCtg) {
+                            if (itemDish.categorie_id === itemCtg.id) {
+                                priceAll.addPriceJSON(itemDish.id);
+                            }
+                        });
+                    });
+                }
 
-            e.target.classList.add('select');
-        }
+                let divCtg = createGroupCtgr(e.target.id);
+                let divSelItem = createNewItem(e.target.id);
+                divCtg.dataset.count++;
+                divSelItem.setAttribute('data-dishid', e.target.id.toString()); //--- data
+                divSelItem.setAttribute('data-orderid', orderItems.maxNumber.toString()); // --- data
+                divSelItem.setAttribute('data-countcmpl', '0'); //---data
+                divSelItem.setAttribute('data-priceid', '1');// --- data
+
+                divCtg.appendChild(divSelItem);
+
+                e.target.classList.add('select');
+            }
         };
+    }else{"document.querySelector('#dishes_list') is NONE"};
 
+    if (document.querySelector('#title_order')) {
         //zgort rozg zamovlennya
-        document.querySelector('#title_order').onclick=()=>{
-            document.querySelector('.order').hidden=!document.querySelector('.order').hidden;
+        document.querySelector('#title_order').onclick = () => {
+            document.querySelector('.order').hidden = !document.querySelector('.order').hidden;
         };
+    }else{console.log("document.querySelector('#title_order') is NONE")};
 
-        document.querySelector('#submit').onclick=()=>{
+    if(document.querySelector('#submit')) {
+        document.querySelector('#submit').onclick = () => {
+            if (!stLog){
+                alert ("You need loging!!!");
+                return 0;
+            };
             const request = new XMLHttpRequest();
-            let dataord=JSON.stringify(orderItems.getAllItems());
-            request.open('GET', '/'+dataord);
+            let dataord = JSON.stringify(orderItems.getAllItems());
+            request.open('GET', '/' + dataord);
             // request.setRequestHeader("Content-Type", "application/json");
             request.send();
             request.onload = () => {
                 const dataJSON = JSON.parse(request.responseText);
                 request.abort();
-                console.log('rez:'+dataJSON.rez); //!!!!!
-            orderItems
+                console.log('rez:' + dataJSON.rez); //!!!!!
+                // orderItems
             }
         };
+    }else{console.log("document.querySelector('#submit') is NONE")};
+
+    // document.getElementById('log').onclick=()=>{//?????????????????????
+    //     const modal=document.createElement('div');
+    //     modal.setAttribute('id', 'modal');
+    //
+    // };
 
 
 });

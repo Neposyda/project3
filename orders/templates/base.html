@@ -64,21 +64,24 @@
         <ul class="nav navbar-nav navbar-right">
             <li class="hellouser">
                 {% if log %}
-                    Hello, {{ user }}
+                    <a>Hello, {{ user }}</a>
                 {% else %}
-                    <div>Register or loging, please.</div>
+                    <a>Register or loging, please.</a>
                 {% endif %}
             </li>
-            <li>
+            <li id="log" data-log={{ log }}>
 {#                <a href="{% url 'user' %}">#}
                 {% if log %}
-                    <a href="{% url 'logout' %}">Logout</a>
+{#                    <a href="{% url 'logout' %}">Logout</a>#}
+                    <a>Logout</a>
                 {% else %}
-                    <a href="{% url 'log' %}">Login</a>
+{#                    <a href="{% url 'log' %}">Login</a>#}
+                    <a>Login</a>
                 {% endif %}
-                </a>
+{#                </a>#}
             </li>
-            <li><a href="{% url 'reg' %}">Register</a></li>
+{#            <li id="reg"><a href="{% url 'reg' %}">Register</a></li>#}
+            <li id="reg"><a>Register</a></li>
         </ul>
         </div>
         </div>
