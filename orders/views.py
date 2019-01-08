@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+# from django.core import serializers
 from django.shortcuts import render
 from django.db import models
 from orders.models import Categorie, PriceCategories, Price, Dish, Orders, OrdersItems, ItemComplements
@@ -62,7 +63,9 @@ def data(request):
     datadict = {
         'categories_dish_list': TableToJSON(Categorie),
         'dishes_list': TableToJSON(Dish),
-        'categories_price_list': TableToJSON(PriceCategories)}
+        'categories_price_list': TableToJSON(PriceCategories),
+        'log': request.user.is_authenticated
+    }
         # 'prices_list': TableToJSON(Price)}
     return JsonResponse(datadict)
 
@@ -82,8 +85,11 @@ def submit(request, dataord):
     try:
         data = json.loads(dataord)
     except:
+        print("Error in 'def Submit''")
         return JsonResponse({'rez': rez})
+
     summ = 0.00
+
     order = Orders(
         number=Orders.objects.count(),
         data=datetime.now(),
@@ -92,30 +98,31 @@ def submit(request, dataord):
     order.save()
     for item in data:
         # append items
-        # selToOrd: idDish, idCtgDish, nameDish, idCtgPrice, type, price, countDish, countCompl, complements, summ
+        # selToOrd: idDish, idCtgDish, name
+        # Dish, idCtgPrice, type, price, countDish, countCompl, complements, summ
         itmorder = OrdersItems(
             order_id=order.id,
             dish_id=item['idDish'],
             count=item['countDish'],
-            price_id=item['idCtgPrice'],
-            type=1 if item['type'] == 'small' else 2 #?????????????
-        )
+            price_id=Price.objects.get(dish_id=item['idDish'], categorie_id=item['idCtgPrice']).id,
+            type=1 if item['type'] == 'small' else 2)
         itmorder.save()
 
         for compl in item['complements']:
         # append complementsm.complements
         # categorie_id, complement, count, id, name
-            complitem=ItemComplements(itemord_id=itmorder.id,
+            if compl['count']>0:
+                complitem=ItemComplements(itemord_id=itmorder.id,
                                       dishcompl_id=compl['id'],
-                                      price_id=getattr(Price.objects.get(dish_id=itmorder.dish.id,
-                                                                categorie_id=itmorder.price.id), item['type']),
+                                      price_id=itmorder.price_id,
                                       count=compl['count'])
-            complitem.save()
-        rez = True
+                complitem.save()
+        order.total_cost+=itmorder.GetItemCost()
+    order.save()
+    rez = True
     return JsonResponse({'rez': rez})
 
 
 def orders():
-
     pass
 
