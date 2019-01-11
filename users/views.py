@@ -6,7 +6,6 @@ from django.urls import reverse
 import json
 
 
-
 def loging(request, status):
     # print(status)
     inpName = {
@@ -24,7 +23,9 @@ def loging(request, status):
         'required': 'true',
         'margin': '5px'
     }
-
+    if json.loads(status)['log'] == "logout":
+        logout(request)
+        return JsonResponse({'log': False})
     # print(rez)
     return JsonResponse({'username': inpName, 'password': inpPassw})
 
@@ -54,9 +55,11 @@ def login_view(request):
     else:
         return render(request, "login.html", {"message": "Invalid credentials."})
 
+
 def logout_view(request):
     logout(request)
     return render(request, "login.html", {"message": "Logged out"})
+
 
 def register_view(request):
     # username = request.POST["username"]

@@ -20,6 +20,6 @@ from orders import views as views
 urlpatterns = [
     path("", include("orders.urls")),
     path("", include("users.urls")),
-    path("admin/", admin.site.urls),
+    path("admin/", admin.site.urls, name='admin')
     # path("submit/", views.submit, name='submit')
 ]

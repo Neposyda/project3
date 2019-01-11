@@ -116,7 +116,7 @@ function createItemCompl (complItem){
     inpCount.setAttribute('value','0');
     inpCount.setAttribute('step','1');
     inpCount.setAttribute('min','0');
-    if (ctgDishAll[complItem.categorie_id-1].subtype==1){
+    if (ctgDishAll[complItem.categorie_id-1].subtype===1){
         inpCount.setAttribute('max','5');
     }else{
         inpCount.setAttribute('max','50');
@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         request.onload = () => {
             const dataJSON = JSON.parse(request.responseText);
             request.abort();
+            document.getElementById('total_order').innerText='$'+ orderItems.calcSummOrder().toFixed(2);
             stLog=dataJSON['log'];
 
             //=======================================================
@@ -302,7 +303,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
             let summ=0;
 
             // typePr=orderItems.idCtgPrice;
-            for (item in compl){
+            for (let item in compl){
                 let pr =priceAll.get( compl[item].id, ctgPr, typePr);
                 summ+= pr*compl[item].count;
             }
@@ -315,17 +316,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
             let summCompl=orderItems.calcSummComplItem(itemsId);
             let pr = priceAll.get(orderItems[itemsId].idDish,orderItems[itemsId].idCtgPrice, orderItems[itemsId].type);
 
-            if (orderItems[itemsId].price==0){orderItems[itemsId].price=pr}else{pr=orderItems[itemsId].price};//??????
+            if (orderItems[itemsId].price===0){orderItems[itemsId].price=pr}else{pr=orderItems[itemsId].price};//??????
 
             let summ=orderItems[itemsId].countDish*(pr+summCompl);
             orderItems[itemsId].summ=summ;
             return summ;
         };
 
+        //add funct calc total cost order
         orderItems.calcSummOrder=()=>{
             orderItems.total=0.00;
-            for(i in orderItems){
-                if (typeof(orderItems[i]) == 'object'){
+            for(let i in orderItems){
+                if (typeof(orderItems[i]) === 'object'){
                     orderItems.total+=orderItems[i].summ;
                     // console.log(i + ': type ' + typeof(orderItems[i]) + ": " + orderItems.total + '..' + orderItems[i].summ);
                 };
@@ -422,7 +424,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 }
                 let summ = orderItems.calcSummItem(objParent.dataset.orderid);
                 objParent.childNodes[5 - k].value = summ.toFixed(2);
-                document.getElementById('total_order').innerText='$'+ orderItems.calcSummOrder().toFixed(2);//??????????????
+                document.getElementById('total_order').innerText='$'+ orderItems.calcSummOrder().toFixed(2);
             }
             if (obj.type === 'button') {
                 switch (obj.classList[1]) {
@@ -432,7 +434,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                             orderItems[objParent.dataset.orderid].idDish,
                             orderItems[objParent.dataset.orderid].idCtgPrice,
                             type);
-                        if (price == 0) return 0;
+                        if (price === 0) return 0;
 
                         obj.dataset.type = type;
                         obj.value = (type === 'large') ? type.toUpperCase() : type;
@@ -444,6 +446,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
                         document.getElementById('total_order').innerText='$'+ orderItems.calcSummOrder().toFixed(2); //????
                         break;
                     case 'btncompl':
+                        if (objParent.childNodes[3].value==0){
+                          alert ("Input COUNT!!!");
+                          break;
+                        }
                         let objPar = obj.parentNode;
                         if (obj.dataset.open === '0') {
                             obj.dataset.open = '1';
@@ -540,8 +546,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
                     orderItems[itemId].complements[listId].count = parseInt(obj.value);
                     grItemOrd.childNodes[4].value = orderItems[itemId].price.toFixed(2);
                     grItemOrd.childNodes[5].value = orderItems.calcSummItem(itemId).toFixed(2);
-                    document.getElementById('total_order').innerText='$' + orderItems.calcSummOrder().toFixed(2);//???????
-                }
+                    document.getElementById('total_order').innerText='$' + orderItems.calcSummOrder().toFixed(2);                }
             }
         };
     }else{console.log("document.querySelector('.order ') is NONE")};
@@ -602,20 +607,67 @@ document.addEventListener('DOMContentLoaded', ()=>{
             if (!stLog){
                 alert ("You need loging!!!");
                 return 0;
+            }
+            if (orderItems.total==0){
+                alert("You need selection dish of menu.");
+                return 0;
             };
             const request = new XMLHttpRequest();
-            let dataord = JSON.stringify(orderItems.getAllItems());
-            request.open('GET', '/' + dataord);
+            // let dataord = JSON.stringify(orderItems.getAllItems());
+            let dataord = orderItems.getAllItems();
+            let reqdata=JSON.stringify(dataord);
+            request.open('GET', '/submit/' + reqdata);
             // request.setRequestHeader("Content-Type", "application/json");
             request.send();
             request.onload = () => {
+                if (request.status == 404){
+                    alert ('Error SUBMIT, status request: '+ request.status);
+                    request.abort();
+                    return false;
+                }
                 const dataJSON = JSON.parse(request.responseText);
                 request.abort();
-                console.log('rez:' + dataJSON.rez); //!!!!!
-                // orderItems
+                console.log('rez:' + dataJSON.rez);
+                if (dataJSON.rez){
+                    //del child in div class 'order'
+                    const divOrder=document.querySelector('.order');
+                    while (divOrder.firstChild){
+                        const divCtg=divOrder.firstChild;
+                        while (divCtg.firstChild){
+                            if (divCtg.firstChild.className=='item'){
+                                //unselect all 'select' dish
+                                let list=document.getElementById(divCtg.firstChild.dataset.dishid).classList;
+                                list.remove(list[1]);
+                            }
+                            divCtg.removeChild(divCtg.firstChild);
+                        }
+                        divCtg.remove();
+                    }
+                    // clear order items
+                    orderItems.clearItems();
+                    document.getElementById('total_order').innerText='$'+ orderItems.calcSummOrder().toFixed(2);
+                }
             }
         };
-    }else{console.log("document.querySelector('#submit') is NONE")};
+    }else{console.log("document.querySelector('#submit') is NONE")}
+
+    document.getElementById('log').onclick=()=>{
+        const request = new XMLHttpRequest();
+        let status={'log':'login'};
+        if (stLog) {
+            status['log']='logout';
+        }
+        request.open('GET', '/log/'+JSON.stringify(status));
+        request.send();
+        request.onerror=()=>{request.abort();}
+        request.onload=()=>{
+            rez=JSON.parse(request.responseText);
+            stLog=rez['log'];
+            document.querySelector('.hellouser > a').innerHTML='Register or loging, please.';
+            document.querySelector('#log > a').innerHTML='Login';
+            request.abort();}
+
+    }
 
     // document.getElementById('log').onclick=()=>{//?????????????????????
     //     const modal=document.createElement('div');

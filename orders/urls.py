@@ -8,6 +8,6 @@ urlpatterns = [
     path("menu/", views.menu, name="menu"),
     path("data/", views.data, name="data"),
     path("<int:dishId>", views.price, name='price'),
-    path("<str:dataord>", views.submit, name='submit'),
+    path("submit/<str:dataord>", views.submit, name='submit'),
     path("orders", views.orders, name="orders")
 ]

@@ -12,7 +12,8 @@ def index(request):
         return render(request, "index.html", {"log": False})
     context = {
         "user": request.user.username,
-        "log": True
+        "log": True,
+        "superuser": request.user.is_superuser
     }
     return render(request, "index.html", context)
 
@@ -93,7 +94,6 @@ def submit(request, dataord):
     order = Orders(
         number=Orders.objects.count(),
         data=datetime.now(),
-        total_cost=0,
         user=request.user.username)
     order.save()
     for item in data:
@@ -117,8 +117,7 @@ def submit(request, dataord):
                                       price_id=itmorder.price_id,
                                       count=compl['count'])
                 complitem.save()
-        order.total_cost+=itmorder.GetItemCost()
-    order.save()
+        order.save()
     rez = True
     return JsonResponse({'rez': rez})
 
