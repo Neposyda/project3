@@ -174,7 +174,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
         request.onload = () => {
             const dataJSON = JSON.parse(request.responseText);
             request.abort();
-            document.getElementById('total_order').innerText='$'+ orderItems.calcSummOrder().toFixed(2);
             stLog=dataJSON['log'];
 
             //=======================================================
@@ -653,9 +652,61 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     document.getElementById('log').onclick=()=>{
         const request = new XMLHttpRequest();
-        let status={'log':'login'};
-        if (stLog) {
-            status['log']='logout';
+        let status={'log':(stLog)?'logout':'login'};
+        if (!stLog) {
+            const modal=document.createElement('div');
+            modal.setAttribute('id', 'modal');
+            // modal.setAttribute('display', 'flex');
+            // modal.setAttribute('flex-direction', 'column');
+            // modal.setAttribute('justify-content','center');
+            // modal.setAttribute('align-items', 'center');
+            modal.setAttribute('style',
+                'display:flex; ' +
+                'flex-direction: column; ' +
+                'justify-content: center; ' +
+                'align-items: center;')
+
+            //!!!!!!!!!!!!!!!!!!!!!!!
+            //mod.setAttribute('style','display: none; color: red;')
+            //mod['setAttribute']('style','display: block; color: red;')
+            // !!!!!!!!!!!!!!!!!!!!!!
+
+
+            const inpName=document.createElement('input');
+            inpName.setAttribute('type', 'text');
+            inpName.setAttribute('id', 'username');
+            inpName.setAttribute('autocomplete', 'off');
+            inpName.setAttribute('required', 'true');
+            inpName.setAttribute('margin', '5px');
+
+            const inpPassw=document.createElement('input');
+            inpPassw.setAttribute('type', 'password');
+            inpPassw.setAttribute('id', 'password');
+            inpPassw.setAttribute('autocomplete', 'off');
+            inpPassw.setAttribute('required', 'true');
+            inpPassw.setAttribute('margin', '5px');
+
+            const lblName=document.createElement('label');
+            lblName.setAttribute('for','username');
+            lblName.innerHTML='Input you\'re name.'
+
+            const lblPassw=document.createElement('label');
+            lblPassw.setAttribute('for','password');
+            lblPassw.innerHTML='Input you\'re password.';
+
+            const inpSend=document.createElement('input');
+            inpSend.setAttribute('type','submit');
+            inpSend.setAttribute('id','send');
+            inpSend.innerHTML='Submit';
+            inpSend.setAttribute('style','width-max: 100px');
+
+            modal.appendChild(lblName);
+            modal.appendChild(inpName);
+            modal.appendChild(lblPassw);
+            modal.appendChild(inpPassw);
+            modal.appendChild(inpSend);
+            document.querySelector('body').appendChild(modal);
+            // status['log']='logout';
         }
         request.open('GET', '/log/'+JSON.stringify(status));
         request.send();
@@ -665,9 +716,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
             stLog=rez['log'];
             document.querySelector('.hellouser > a').innerHTML='Register or loging, please.';
             document.querySelector('#log > a').innerHTML='Login';
-            request.abort();}
+            request.abort();
+            // if (!stLog){
+            //
+            // }
+
+        }
 
     }
+
+    if (document.getElementById('send')){
+        document.getElementById('send').onclick=()=>{
+            alert('Click SEND');
+        }
+    }else{console.log("document.getElementById('send') is NONE")}
 
     // document.getElementById('log').onclick=()=>{//?????????????????????
     //     const modal=document.createElement('div');
