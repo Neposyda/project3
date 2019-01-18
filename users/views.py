@@ -8,26 +8,16 @@ import json
 
 def loging(request, status):
     # print(status)
-    inpName = {
-        'type': 'text',
-        'id': 'username',
-        'autocomplete': 'off',
-        'required': 'true',
-        'margin': '5px'
-    }
-
-    inpPassw = {
-        'type': 'password',
-        'id': 'password',
-        'autocomplete': 'off',
-        'required': 'true',
-        'margin': '5px'
-    }
-    if json.loads(status)['log'] == "logout":
+    status=json.loads(status)
+    if status['log'] == "logout":
         logout(request)
         return JsonResponse({'log': False})
-    # print(rez)
-    return JsonResponse({'username': inpName, 'password': inpPassw})
+    usercur = authenticate(request, username=status['username'], password=status['password'])
+    if usercur is not None:
+        login(request, usercur)
+        return JsonResponse({'log': True, 'user': usercur.username})
+    else:
+        return JsonResponse({'log': False})
 
 
 def log_start(request):

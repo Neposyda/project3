@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-    <div><h2 id="title_order" class="itemLine">My order: </h2><h3 id="total_order" class="itemLine">$ 0.00</h3></div>
+    <div><h2 id="title_order" class="itemLine">My order: <span></span></h2><h3 id="total_order" class="itemLine">$ 0.00</h3></div>
         <div class="order"></div>
 {#        <form action="submit" method="post" >#}
         <input type="submit" id="submit" value="SUBMIT">
@@ -10,7 +10,7 @@
                 <ul id="dishes_list">
                 {% for categorie in categories_list %}
                     {% if not categorie.subtype %}
-                        <h3 class="ctgr_name" id="ctgr{{ categorie.id }}">{{ categorie.name }}</h3>
+                        <h3 class="ctgr_name" id="ctgr{{ categorie.id }}">{{ categorie.name }}:<span></span></h3>
                         <div class="ctgr{{ categorie.id}}">
                             {% for dish in dishes_list %}
                                 {% if categorie.id == dish.categorie_id %}

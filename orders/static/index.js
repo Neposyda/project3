@@ -2,6 +2,127 @@ let stLog=false;
 let ctgDishAll, dishAll, priceAll={};
 let orderItems={'countDish':0, 'maxNumber':0, 'total':0.00 };
 
+function cancelRequest() {
+    document.getElementById('modal').remove();
+}
+
+function sendRequest(type){
+    const request = new XMLHttpRequest();
+    let status={'log':type};
+    if (type=='login'){
+        if (document.getElementById('username').value=='' || document.getElementById('password').value==''){
+            request.abort();
+            return 0;
+        }
+        status['username']=document.getElementById('username').value;
+        status['password']=document.getElementById('password').value;
+    }
+    if (type=='reg'){
+
+    }
+    request.open('GET', '/log/'+JSON.stringify(status));
+    request.send();
+    request.onerror=()=>{
+        request.abort();
+    }
+    request.onload=()=>{
+        let rez=JSON.parse(request.responseText);
+        request.abort();
+        stLog=rez['log'];
+        let message='Register or loging, please.';
+        if (stLog){
+            message='Hello, '+ rez['user'] +'.';
+            document.getElementById('modal').remove();
+        }
+        document.querySelector('.hellouser > a').innerHTML=message;
+        document.querySelector('#log > a').innerHTML=(stLog)?'Logout':'Login';
+    }
+}
+
+function createModal(type) {
+        const modal=document.createElement('div');
+            modal.setAttribute('id', 'modal');
+            modal.setAttribute('style',
+                'display:flex; ' +
+                'flex-direction: column; ' +
+                'justify-content: center; ' +
+                'align-items: center;')
+            //!!!!!!!!!!!!!!!!!!!!!!!
+            //mod.setAttribute('style','display: none; color: red;')
+            //mod['setAttribute']('style','display: block; color: red;')
+            // !!!!!!!!!!!!!!!!!!!!!!
+            const inpName=document.createElement('input');
+            inpName.setAttribute('type', 'text');
+            inpName.setAttribute('id', 'username');
+            inpName.setAttribute('name', 'username');
+            inpName.setAttribute('autocomplete', 'off');
+            inpName.setAttribute('required', 'true');
+            inpName.setAttribute('margin', '5px');
+
+            const inpPassw=document.createElement('input');
+            inpPassw.setAttribute('type', 'password');
+            inpPassw.setAttribute('id', 'password');
+            inpPassw.setAttribute('name', 'password');
+            inpPassw.setAttribute('autocomplete', 'off');
+            inpPassw.setAttribute('required', 'true');
+            inpPassw.setAttribute('margin', '5px');
+
+            const lblName=document.createElement('label');
+            lblName.setAttribute('for','username');
+            lblName.innerHTML='Input you\'re name.'
+
+            const lblPassw=document.createElement('label');
+            lblPassw.setAttribute('for','password');
+            lblPassw.innerHTML='Input you\'re password.';
+
+            const inpSend=document.createElement('input');
+            inpSend.setAttribute('type','submit');
+            inpSend.setAttribute('id','send');
+            inpSend.innerHTML='Submit';
+            inpSend.setAttribute('style','width-max: 100px');
+            inpSend.setAttribute('onclick', 'sendRequest(\'login\')');
+
+            // inpSend.setAttribute('onclick', 'requestLogingReg(\'login\')');
+
+            const inpCancel=document.createElement('button');
+            // inpCancel.setAttribute('type','');
+            inpCancel.setAttribute('id','cancel');
+            inpCancel.innerHTML='Cancel';
+            inpCancel.setAttribute('style','width-max: 100px');
+            inpCancel.setAttribute('onclick', "cancelRequest()");
+
+            modal.appendChild(lblName);
+            modal.appendChild(inpName);
+            if (type=='reg'){
+                const lblFName=lblName.cloneNode(true);
+                const inpFName=inpName.cloneNode(true);
+                lblFName.setAttribute('for', 'inpFName');
+                lblFName.innerHTML='Input yuo\'re first name.' ;
+                inpFName.setAttribute('id', 'fname');
+                modal.appendChild(lblFName);
+                modal.appendChild(inpFName);
+                const lblLName=lblName.cloneNode(true);
+                const inpLName=inpName.cloneNode(true);
+                lblLName.setAttribute('for','inpLName');
+                lblLName.innerHTML='Input you\'re last name.' ;
+                inpLName.setAttribute('id', 'lname');
+                modal.appendChild(lblLName);
+                modal.appendChild(inpLName);
+                const lblEmail=lblName.cloneNode(true);
+                const inpEmail=inpName.cloneNode(true);
+                lblEmail.setAttribute('for','inpEmail');
+                lblEmail.innerHTML='Input you\'re e-mail.';
+                inpEmail.setAttribute('type','email');
+                inpEmail.setAttribute('id', 'email');
+                modal.appendChild(lblEmail);
+                modal.appendChild(inpEmail);
+            }
+            modal.appendChild(lblPassw);
+            modal.appendChild(inpPassw);
+            modal.appendChild(inpSend);
+            modal.appendChild(inpCancel);
+            document.querySelector('body').appendChild(modal);
+}
 
 function createNewItem (dishId){
     //create elements of new item in order
@@ -555,6 +676,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
             // click group name zgort rozg grupu menyu
             if (e.target.className === "ctgr_name") {
                 const v = document.querySelector("ul > ." + e.target.id);
+                e.target.lastChild.innerText=(v.hidden)?"":" ..."
                 v.hidden = !v.hidden;
             }
 
@@ -594,9 +716,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
         };
     }else{"document.querySelector('#dishes_list') is NONE"};
 
-    if (document.querySelector('#title_order')) {
+if (document.querySelector('#title_order')) {
         //zgort rozg zamovlennya
-        document.querySelector('#title_order').onclick = () => {
+        document.querySelector('#title_order').onclick = (e) => {
+            e.target.lastChild.innerHTML=(document.querySelector('.order').hidden)?"":" ..."
             document.querySelector('.order').hidden = !document.querySelector('.order').hidden;
         };
     }else{console.log("document.querySelector('#title_order') is NONE")};
@@ -651,91 +774,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }else{console.log("document.querySelector('#submit') is NONE")}
 
     document.getElementById('log').onclick=()=>{
-        const request = new XMLHttpRequest();
-        let status={'log':(stLog)?'logout':'login'};
         if (!stLog) {
-            const modal=document.createElement('div');
-            modal.setAttribute('id', 'modal');
-            // modal.setAttribute('display', 'flex');
-            // modal.setAttribute('flex-direction', 'column');
-            // modal.setAttribute('justify-content','center');
-            // modal.setAttribute('align-items', 'center');
-            modal.setAttribute('style',
-                'display:flex; ' +
-                'flex-direction: column; ' +
-                'justify-content: center; ' +
-                'align-items: center;')
-
-            //!!!!!!!!!!!!!!!!!!!!!!!
-            //mod.setAttribute('style','display: none; color: red;')
-            //mod['setAttribute']('style','display: block; color: red;')
-            // !!!!!!!!!!!!!!!!!!!!!!
-
-
-            const inpName=document.createElement('input');
-            inpName.setAttribute('type', 'text');
-            inpName.setAttribute('id', 'username');
-            inpName.setAttribute('autocomplete', 'off');
-            inpName.setAttribute('required', 'true');
-            inpName.setAttribute('margin', '5px');
-
-            const inpPassw=document.createElement('input');
-            inpPassw.setAttribute('type', 'password');
-            inpPassw.setAttribute('id', 'password');
-            inpPassw.setAttribute('autocomplete', 'off');
-            inpPassw.setAttribute('required', 'true');
-            inpPassw.setAttribute('margin', '5px');
-
-            const lblName=document.createElement('label');
-            lblName.setAttribute('for','username');
-            lblName.innerHTML='Input you\'re name.'
-
-            const lblPassw=document.createElement('label');
-            lblPassw.setAttribute('for','password');
-            lblPassw.innerHTML='Input you\'re password.';
-
-            const inpSend=document.createElement('input');
-            inpSend.setAttribute('type','submit');
-            inpSend.setAttribute('id','send');
-            inpSend.innerHTML='Submit';
-            inpSend.setAttribute('style','width-max: 100px');
-
-            modal.appendChild(lblName);
-            modal.appendChild(inpName);
-            modal.appendChild(lblPassw);
-            modal.appendChild(inpPassw);
-            modal.appendChild(inpSend);
-            document.querySelector('body').appendChild(modal);
-            // status['log']='logout';
+            createModal('log');
+        }else {
+            sendRequest('logout');
         }
-        request.open('GET', '/log/'+JSON.stringify(status));
-        request.send();
-        request.onerror=()=>{request.abort();}
-        request.onload=()=>{
-            rez=JSON.parse(request.responseText);
-            stLog=rez['log'];
-            document.querySelector('.hellouser > a').innerHTML='Register or loging, please.';
-            document.querySelector('#log > a').innerHTML='Login';
-            request.abort();
-            // if (!stLog){
-            //
-            // }
-
-        }
-
     }
 
-    if (document.getElementById('send')){
-        document.getElementById('send').onclick=()=>{
-            alert('Click SEND');
-        }
-    }else{console.log("document.getElementById('send') is NONE")}
-
-    // document.getElementById('log').onclick=()=>{//?????????????????????
-    //     const modal=document.createElement('div');
-    //     modal.setAttribute('id', 'modal');
-    //
-    // };
-
-
+    document.getElementById('reg').onclick=()=>{
+        if (stLog){return 0;}
+        createModal('reg');
+    }
 });
